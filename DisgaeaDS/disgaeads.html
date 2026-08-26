@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Reference documentation for the file formats used in Nippon Ichi Software's Disgaea DS - DSARCFL, DSEQ, SBNK, SSEQ, STRM, SWAR, SWAV, IMY, MPD, and MPDS." />
+    <meta name="theme-color" content="#0e1a2b" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>" />
+    <title>Disgaea DS Wiki - File Formats</title>
+    <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+    <div id="content">
+        <div class="page-header">
+            <h1>Home</h1>
+            <div class="page-sub">Disgaea DS reverse engineering documentation</div>
+        </div>
+        <div class="page-content"><p>Welcome to the <strong>Disgaea DS Documentation wiki</strong> - a clean reference for the file formats used in Nippon Ichi Software's <em>Disgaea DS</em>.</p>
+
+<h2>File Formats</h2>
+<ul>
+  <li><a href="../archive/dsarcfl.html">DSARCFL</a> - archive container for audio / music / sound effects</li>
+  <li><a href="../archive/dseq.html">DSEQ</a> - music archive bundling SSEQ + SBNK + SWAR</li>
+  <li><a href="../audio/sbnk.html">SBNK</a> - sound bank mapping instruments to samples</li>
+  <li><a href="../audio/sseq.html">SSEQ</a> - sequenced instruction format for music</li>
+  <li><a href="../audio/strm.html">STRM</a> - Nintendo DS streamed audio (used for sound effects)</li>
+  <li><a href="../audio/swar.html">SWAR</a> - wave archive containing SWAV files</li>
+  <li><a href="../audio/swav.html">SWAV</a> - Nintendo DS wave audio container</li>
+  <li><a href="../compression/imy.html">IMY</a> - compressed image format</li>
+  <li><a href="../map/mpd.html">MPD</a> - tile-based map data</li>
+  <li><a href="../map/mpds.html">MPDS</a> - compressed MPD map file</li>
+</ul>
+
+<h2>ROM Structure</h2>
+<p>High-level overview of the <code>Disgaea DS</code> ROM layout. File tree adapted from <a href="https://disgaea.rustedlogic.net/Disgaea_1/DS/File_tree" target="_blank" rel="noopener">rustedlogic.net</a>.</p>
+
+<div class="file-tree">[root]
+├── ThumbBg.dat [DSARCIDX]
+│   └── Thubg*.imy (19 files) [IMY] - Savefile thumbnails
+├── bg.dat [DSARCIDX]
+│   └── bg*.mpb (117 files) [MPB] (MAP, IMY)
+├── bgm.dat{,.tbl} [DSARCFL]
+│   └── bgm__.msnd (33 files) [DSEQ]
+├── bu.dat [DSARCIDX]
+│   └── bu_.mpb (101 files) [MPB] (MAP, IMY)
+├── ch_*.amd (234 files) - Char/class animation data
+├── ch_*.amt (234 files) - Char/class animation data
+├── chclut.bin - Sprite color LUTs (for sprts.bin)
+├── chtex.bin - Sprite metadata (for sprts.bin)
+├── demoDbg.dat [DSARCIDX]
+│   └── file* (280 files) - ASCII text (debug text)
+├── dspack.dat [DSARCIDX] - (start.dat for DS)
+│   ├── back.imy [IMY]
+│   ├── base.dso [DSO] (DSARCIDX)
+│   │   ├── base.dsm [DSM]
+│   │   └── baseoe__.imy (5 files) [IMY]
+│   ├── cursor.dso [DSO] (DSARCIDX)
+│   │   ├── cursor.dsm [DSM]
+│   │   └── cursoroe__.imy (2 files) [IMY]
+│   ├── enn.dso [DSO] (DSARCIDX)
+│   │   ├── enn.dsm [DSM]
+│   │   └── ennoe__.imy (2 files) [IMY]
+│   ├── enn.imy [IMY]
+│   ├── establish_.imy (23 files) [IMY] - Top screen Settings
+│   ├── helpbg*.imy (7 files) [IMY] - Top screen Help
+│   ├── loading*.imy (6 files) [IMY] - Loading screen clock-Prinny
+│   ├── mgate.dso [DSO] (DSARCIDX)
+│   │   ├── mgate.dsm [DSM]
+│   │   └── mgateoe_*.imy (4 files) [IMY]
+│   ├── pliny01.imy [IMY]
+│   ├── sys7.imy [IMY]
+│   ├── taiho.dso [DSO] (DSARCIDX)
+│   │   ├── taiho.dsm [DSM]
+│   │   └── taihooe_*.imy (6 files) [IMY]
+│   ├── taiho2.dso [DSO] (DSARCIDX)
+│   │   ├── taiho2.dsm [DSM]
+│   │   └── taiho2oe_*.imy (4 files) [IMY]
+│   ├── titdemo{3,4,5}.imy (3 files) [IMY] - Titlescreen opening
+│   ├── waku3.imy [IMY]
+│   └── wbg*.imy (17 files) [IMY] - Top-screen titlescreen logo
+├── efctobj.dat [DSARCIDX]
+│   └── effect_.dsm (133 files) [DSM]
+├── efcttex.dat [DSARCIDX]
+│   └── effect___.imy (270 files) [IMY]
+├── mapobjs.dat [DSARCIDX]
+│   └── mp_o_.dsm (234 files) [DSM]
+├── maptex.dat [DSARCIDX]
+│   └── mp_{t,prd}*.imy (785 files) [IMY] - Map textures
+├── mpds.dat [DSARCIDX]
+│   └── mp*.mpds (198 files) [MPDS] - Map files (compressed)
+├── mpds.lst - CSV (filename, mapID)
+├── msgvo.dat{,.tbl} [DSARCFL]
+│   └── _.strm (173 files) [STRM]
+├── nafnt.fnt
+├── objtex.dat [DSARCIDX]
+│   └── mp_o*_*.imy (646 files) [IMY] - Map object textures
+├── rmaps.dat [DSARCIDX]
+│   └── 20*.rmd (72 files) - Item world randomized maps
+├── script.dat - Scripting
+├── se.dat{,.tbl} [DSARCFL]
+│   ├── ___.se (128 files) [SWAV] - Sound effects
+│   └── yrah_.swav (4 files) (empty)
+├── song.dat{,.tbl} [DSARCFL]
+│   ├── bgm10.msnd [DSEQ]
+│   └── song_.msnd (11 files) [DSEQ]
+├── sprts.bin - Raw sprite data (use chtex.bin to parse)
+├── sys9.imy [IMY] - Tileset for topscreen (map)
+├── table.dat [DSARCIDX]
+│   ├── char.dat - Character/class data
+│   ├── charhelp.dat - Class help description
+│   ├── dungeon.dat - Gatekeeper warp data
+│   ├── ge.dat - Geo effects
+│   ├── geocube.dat - Geocube effects (multiplayer)
+│   ├── habit.dat - Item inhabitants
+│   ├── hospital.dat - Hospital awards
+│   ├── magic.dat - Specials/spells
+│   ├── mitem.dat - Items
+│   ├── musicshop.dat - Song list
+│   ├── name.dat - Names for randomizer
+│   ├── thief.dat - Stat stealing entries
+│   ├── wish.dat - Dark Assembly bills
+│   └── zukan.dat - Bestiary entries
+├── talk.dat - Dialogue + scripting
+├── uwbg*.mpb (12 files) [MPB] (MAP, IMY)
+├── voice.dat{,.tbl} [DSARCFL]
+│   ├── ___.se (3 files) [SWAV]
+│   └── ___.swav (185 files) [SWAV]
+├── waku{,2,3}.imy (3 files) [IMY]
+└── wbg{,2,3}.imy (3 files) [IMY]</div>
+
+<p style="margin-top:0.8em;font-size:0.85rem;color:#64748b;">
+  <span class="badge">Info</span> This wiki is maintained as a reference for modders, researchers, and archivists.
+</p>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Reference documentation for the file formats used in Nippon Ichi Software's Disgaea DS - DSARCFL, DSEQ, SBNK, SSEQ, STRM, SWAR, SWAV, IMY, MPD, and MPDS." />
+    <meta name="theme-color" content="#0e1a2b" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>" />
+    <title>DSEQ · Disgaea DS Wiki</title>
+    <link rel="stylesheet" href="../../style.css" />
+</head>
+<body>
+    <div id="content">
+        <div class="page-header">
+            <h1>DSEQ</h1>
+            <div class="page-sub">Music archive format (.msnd)</div>
+        </div>
+        <div class="page-content"><p><span class="badge">music</span> <strong>DSEQ</strong> is a custom archive that bundles Nintendo DS music data into a single <code>.msnd</code> file. It contains exactly three sequential binary chunks:</p>
+<ul>
+  <li><strong><a href="../audio/sseq.html">SSEQ</a></strong> - sequence data</li>
+  <li><strong><a href="../audio/sbnk.html">SBNK</a></strong> - sound bank</li>
+  <li><strong><a href="../audio/swar.html">SWAR</a></strong> - wave archive</li>
+</ul>
+
+<h3>File Structure</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>char[4]</td><td>Magic <code>"DSEQ"</code></td></tr>
+    <tr><td>0x04</td><td>12</td><td>uint8[12]</td><td>Reserved (always zero)</td></tr>
+    <tr><td>0x10</td><td>4</td><td>uint32</td><td>SSEQ offset + 0x10</td></tr>
+    <tr><td>0x14</td><td>4</td><td>uint32</td><td>SBNK offset</td></tr>
+    <tr><td>0x18</td><td>4</td><td>uint32</td><td>SWAR offset</td></tr>
+    <tr><td>0x1C</td><td>4</td><td>uint32</td><td>Reserved (zero)</td></tr>
+    <tr><td>0x20</td><td>4</td><td>uint32</td><td>SSEQ size</td></tr>
+    <tr><td>0x24</td><td>4</td><td>uint32</td><td>SBNK size</td></tr>
+    <tr><td>0x28</td><td>4</td><td>uint32</td><td>SWAR size</td></tr>
+    <tr><td>0x2C</td><td>4</td><td>uint32</td><td>Unknown</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>Note:</strong> <code>SSEQ offset + 0x10</code> is stored at 0x10 - subtract 0x10 to get the actual SSEQ start. All offsets are relative to the beginning of the file.
+</div>
+
+<h3>Chunk Order</h3>
+<p>The order is fixed: <strong>SSEQ → SBNK → SWAR</strong>. Each chunk is placed immediately after the previous one. The <code>SWAR</code> size is a 64-bit value split into two 32-bit little-endian values.</p>
+    </div>
+
+    <script src="../../script.js"></script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Reference documentation for the file formats used in Nippon Ichi Software's Disgaea DS - DSARCFL, DSEQ, SBNK, SSEQ, STRM, SWAR, SWAV, IMY, MPD, and MPDS." />
+    <meta name="theme-color" content="#0e1a2b" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>" />
+    <title>DSARCFL · Disgaea DS Wiki</title>
+    <link rel="stylesheet" href="../../style.css" />
+</head>
+<body>
+    <div id="content">
+        <div class="page-header">
+            <h1>DSARCFL</h1>
+            <div class="page-sub">DSARC FL archive format specification</div>
+        </div>
+        <div class="page-content"><p><span class="badge">archive</span> <strong>DSARC FL</strong> is a container format used to bundle multiple audio, music, and sound effect files into a single <code>.dat</code> archive.</p>
+
+<ul>
+  <li><strong>Magic</strong>: ASCII <code>"DSARC FL"</code> (8 bytes)</li>
+  <li><strong>Version</strong>: 32-bit unsigned integer (little-endian)</li>
+  <li><strong>Entry Count</strong>: 32-bit unsigned integer (little-endian)</li>
+  <li><strong>Header Size</strong>: 16 bytes (magic + count + version)</li>
+  <li><strong>Name Field Size</strong>: 40 bytes per entry (UTF-8, null-padded)</li>
+  <li><strong>Entry Info Size</strong>: 8 bytes per entry (size + offset)</li>
+</ul>
+
+<h3>File Layout</h3>
+<pre>+----------------------+   &lt;-- offset 0
+| Magic (8 bytes)      |       "DSARC FL"
++----------------------+   &lt;-- offset 8
+| Count (4 bytes)      |       Number of entries (uint32 LE)
++----------------------+   &lt;-- offset 12
+| Version (4 bytes)    |       Format version (uint32 LE)
++----------------------+   &lt;-- offset 16 (HEADER_SIZE)
+| Entry Table ...      |       count * (40 + 8) bytes
++----------------------+   &lt;-- data start
+| File Data Section... |
++----------------------+   &lt;-- EOF</pre>
+
+<h3>Header</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Length</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>8</td><td>char[8]</td><td>Magic identifier <code>"DSARC FL"</code></td></tr>
+    <tr><td>0x08</td><td>4</td><td>u32</td><td>Number of entries (little-endian)</td></tr>
+    <tr><td>0x0C</td><td>4</td><td>u32</td><td>Archive version (little-endian), currently 1</td></tr>
+  </tbody>
+</table>
+
+<h3>Entry Table</h3>
+<p>Each entry consists of a 40-byte name, followed by 8 bytes of metadata.</p>
+<table>
+  <thead><tr><th>Field</th><th>Length</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>Name</td><td>40</td><td>char[40]</td><td>Null-padded UTF-8 relative file path</td></tr>
+    <tr><td>File Size</td><td>4</td><td>u32</td><td>Data length in bytes</td></tr>
+    <tr><td>Data Offset</td><td>4</td><td>u32</td><td>Byte offset to file data (from start of archive)</td></tr>
+  </tbody>
+</table>
+
+<h3>Data Section</h3>
+<p>File data is concatenated immediately after the entry table, in the same order as table entries.</p>
+    </div>
+
+    <script src="../../script.js"></script>
+</body>
+</html>

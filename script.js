@@ -25,7 +25,7 @@
         if (disgaeaIdx !== -1) {
             currentDepth = currentParts.length - disgaeaIdx - 1;
         } else if (currentParts[currentParts.length - 1] !== 'index.html') {
-            currentDepth = 1;
+            currentDepth = currentPath.endsWith('/') ? 0 : 1;
         }
 
         let up = currentDepth;

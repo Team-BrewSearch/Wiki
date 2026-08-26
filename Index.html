@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Reference documentation for the file formats used in Nippon Ichi Software's Disgaea DS — DSARCFL, DSEQ, SBNK, SSEQ, STRM, SWAR, SWAV, IMY, MPD, and MPDS." />
+    <meta name="theme-color" content="#0e1a2b" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>" />
+    <title>Disgaea DS Wiki – File Formats</title>
+    <style>
+        /* ── reset & base ── */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #0e1a2b;
+            --sidebar-text: #c8d6e5;
+            --sidebar-active: #3b82f6;
+            --sidebar-hover: #1e2a3a;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #334155;
+            --border: #e2e8f0;
+            --code-bg: #f1f5f9;
+            --code-border: #e2e8f0;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            --radius: 8px;
+            --transition: 0.2s ease;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+        a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* ── scrollbar ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* ── skip link ── */
+        .skip-link {
+            position: absolute;
+            left: 12px;
+            top: -60px;
+            background: var(--primary);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            z-index: 300;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: top var(--transition);
+        }
+        .skip-link:focus {
+            top: 12px;
+        }
+
+        /* ── sidebar ── */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 100;
+            transition: transform var(--transition);
+            will-change: transform;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand {
+            padding: 20px 20px 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+        .sidebar-brand a:hover {
+            text-decoration: none;
+            color: #fff;
+        }
+        .sidebar-brand .brand-icon {
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+        .sidebar-brand .brand-sub {
+            font-size: 0.7rem;
+            font-weight: 400;
+            opacity: 0.5;
+            display: block;
+            margin-top: 1px;
+            letter-spacing: 0.02em;
+        }
+
+        .sidebar-nav {
+            padding: 12px 0 20px 0;
+            flex: 1;
+        }
+
+        .sidebar-section {
+            margin-bottom: 4px;
+        }
+
+        .sidebar-section-title {
+            padding: 6px 20px 4px 20px;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.25);
+            cursor: default;
+            user-select: none;
+        }
+
+        .sidebar-item {
+            display: block;
+            padding: 6px 20px 6px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-left: 3px solid transparent;
+            transition: background var(--transition), border-color var(--transition), color var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+        .sidebar-item:hover {
+            background: var(--sidebar-hover);
+            color: #fff;
+            text-decoration: none;
+        }
+        .sidebar-item.active {
+            background: rgba(59, 130, 246, 0.15);
+            border-left-color: var(--sidebar-active);
+            color: #fff;
+            font-weight: 500;
+        }
+        .sidebar-item .item-label {
+            display: inline-block;
+        }
+        .sidebar-item .item-tag {
+            font-size: 0.6rem;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 1px 8px;
+            border-radius: 12px;
+            margin-left: 8px;
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
+
+        /* ── sidebar toggle (mobile) ── */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 200;
+            background: var(--sidebar-bg);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: background var(--transition);
+            line-height: 1;
+        }
+        .sidebar-toggle:hover {
+            background: #1a2a3e;
+        }
+        .sidebar-toggle .close-icon {
+            display: none;
+        }
+        .sidebar-open .sidebar-toggle .menu-icon {
+            display: none;
+        }
+        .sidebar-open .sidebar-toggle .close-icon {
+            display: inline;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 90;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .sidebar-open .sidebar-overlay {
+            display: block;
+            opacity: 1;
+        }
+
+        /* ── main content ── */
+        .main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            min-height: 100vh;
+            padding: 40px 48px 60px 48px;
+            max-width: 1000px;
+            transition: margin var(--transition);
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+        }
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            color: var(--text);
+        }
+        .page-header .page-sub {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .page-content {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        .page-content h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 1.8em 0 0.5em 0;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+        .page-content h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 1.6em 0 0.4em 0;
+            color: var(--text);
+        }
+        .page-content h4 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 1.4em 0 0.3em 0;
+            color: var(--text);
+        }
+        .page-content p {
+            margin: 0 0 1em 0;
+        }
+        .page-content ul,
+        .page-content ol {
+            margin: 0 0 1em 1.8em;
+        }
+        .page-content li {
+            margin-bottom: 0.3em;
+        }
+        .page-content blockquote {
+            border-left: 4px solid var(--primary);
+            padding: 0.6em 1.2em;
+            margin: 1em 0;
+            background: var(--bg);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            color: var(--text-secondary);
+        }
+        .page-content blockquote p:last-child {
+            margin-bottom: 0;
+        }
+
+        .page-content code {
+            font-family: var(--font-mono);
+            font-size: 0.85em;
+            background: var(--code-bg);
+            padding: 0.15em 0.5em;
+            border-radius: 4px;
+            border: 1px solid var(--code-border);
+            color: #1e293b;
+        }
+        .page-content pre {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 1.2em 1.4em;
+            border-radius: var(--radius);
+            overflow-x: auto;
+            margin: 1em 0;
+            line-height: 1.5;
+            border: 1px solid #1e293b;
+        }
+        .page-content pre code {
+            background: transparent;
+            padding: 0;
+            border: none;
+            color: inherit;
+            font-size: inherit;
+        }
+
+        .page-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.2em 0;
+            font-size: 0.9rem;
+        }
+        .page-content table th,
+        .page-content table td {
+            padding: 0.6em 1em;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        .page-content table th {
+            background: var(--bg);
+            font-weight: 600;
+            color: var(--text);
+        }
+        .page-content table tr:nth-child(even) {
+            background: rgba(241, 245, 249, 0.4);
+        }
+
+        .page-content hr {
+            border: none;
+            border-top: 2px solid var(--border);
+            margin: 2em 0;
+        }
+
+        .page-content .file-tree {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            background: var(--bg);
+            padding: 1.2em 1.6em;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .page-content .note {
+            background: #fefce8;
+            border: 1px solid #fde68a;
+            border-radius: var(--radius);
+            padding: 0.8em 1.2em;
+            margin: 1em 0;
+            color: #78350f;
+        }
+        .page-content .note strong {
+            color: #92400e;
+        }
+
+        .page-content .badge {
+            display: inline-block;
+            background: var(--primary);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.1em 0.7em;
+            border-radius: 12px;
+            letter-spacing: 0.02em;
+        }
+
+        .page-content .spec-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.4em 1.2em;
+            background: var(--bg);
+            padding: 0.8em 1.2em;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin: 0.8em 0;
+            font-size: 0.9rem;
+        }
+        .page-content .spec-grid .label {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* ── responsive ── */
+        @media (max-width: 820px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            .sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+            .sidebar-toggle {
+                display: block;
+            }
+            .main {
+                margin-left: 0;
+                padding: 24px 20px 40px 20px;
+            }
+            .page-header h1 {
+                font-size: 1.6rem;
+            }
+            .page-content {
+                font-size: 0.92rem;
+            }
+            .page-content .file-tree {
+                font-size: 0.7rem;
+                padding: 0.8em 1em;
+            }
+            .sidebar-open .main {
+                filter: blur(2px);
+                pointer-events: none;
+                user-select: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main {
+                padding: 16px 14px 32px 14px;
+            }
+            .page-header h1 {
+                font-size: 1.3rem;
+            }
+            .page-content table {
+                font-size: 0.78rem;
+            }
+            .page-content table th,
+            .page-content table td {
+                padding: 0.4em 0.6em;
+            }
+            .page-content pre {
+                font-size: 0.7rem;
+                padding: 0.8em 1em;
+            }
+            .page-content .file-tree {
+                font-size: 0.65rem;
+                padding: 0.6em 0.8em;
+            }
+            .sidebar {
+                width: 260px;
+            }
+            .sidebar-brand a {
+                font-size: 1rem;
+            }
+            .sidebar-item {
+                font-size: 0.85rem;
+                padding: 5px 16px 5px 16px;
+            }
+        }
+
+        @media (min-width: 1400px) {
+            .main {
+                padding: 48px 56px 80px 56px;
+                max-width: 1100px;
+            }
+            .page-content {
+                font-size: 1rem;
+            }
+        }
+
+        /* ── print ── */
+        @media print {
+            .sidebar,
+            .sidebar-toggle,
+            .sidebar-overlay {
+                display: none !important;
+            }
+            .main {
+                margin-left: 0 !important;
+                padding: 20px !important;
+                max-width: 100% !important;
+            }
+            .page {
+                display: block !important;
+            }
+            .page:not(.active) {
+                display: none !important;
+            }
+            .page-content pre {
+                background: #f1f5f9 !important;
+                color: #0f172a !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+            .page-content .file-tree {
+                background: #f1f5f9 !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+        }
+
+        /* ── motion & focus ── */
+        .page-header h1:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 4px;
+            border-radius: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- ─── SIDEBAR TOGGLE (mobile) ─── -->
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation">
+        <span class="menu-icon">☰</span>
+        <span class="close-icon">✕</span>
+    </button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ─── SIDEBAR ─── -->
+    <nav class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+        <div class="sidebar-brand">
+            <a href="#home" data-page="home">
+                <span class="brand-icon">📖</span>
+                <span>
+                    Disgaea DS Wiki
+                    <span class="brand-sub">File Formats</span>
+                </span>
+            </a>
+        </div>
+        <div class="sidebar-nav">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Disgaea DS</div>
+                <a class="sidebar-item active" data-page="home" href="#home" aria-current="page">
+                    <span class="item-label">Home</span>
+                </a>
+                <a class="sidebar-item" data-page="dsarcfl" href="#dsarcfl">
+                    <span class="item-label">DSARCFL</span>
+                    <span class="item-tag">archive</span>
+                </a>
+                <a class="sidebar-item" data-page="dseq" href="#dseq">
+                    <span class="item-label">DSEQ</span>
+                    <span class="item-tag">music</span>
+                </a>
+                <a class="sidebar-item" data-page="sbnk" href="#sbnk">
+                    <span class="item-label">SBNK</span>
+                    <span class="item-tag">bank</span>
+                </a>
+                <a class="sidebar-item" data-page="sseq" href="#sseq">
+                    <span class="item-label">SSEQ</span>
+                    <span class="item-tag">sequence</span>
+                </a>
+                <a class="sidebar-item" data-page="strm" href="#strm">
+                    <span class="item-label">STRM</span>
+                    <span class="item-tag">stream</span>
+                </a>
+                <a class="sidebar-item" data-page="swar" href="#swar">
+                    <span class="item-label">SWAR</span>
+                    <span class="item-tag">wave archive</span>
+                </a>
+                <a class="sidebar-item" data-page="swav" href="#swav">
+                    <span class="item-label">SWAV</span>
+                    <span class="item-tag">wave</span>
+                </a>
+                <a class="sidebar-item" data-page="imy" href="#imy">
+                    <span class="item-label">IMY</span>
+                    <span class="item-tag">image</span>
+                </a>
+                <a class="sidebar-item" data-page="mpd" href="#mpd">
+                    <span class="item-label">MPD</span>
+                    <span class="item-tag">map</span>
+                </a>
+                <a class="sidebar-item" data-page="mpds" href="#mpds">
+                    <span class="item-label">MPDS</span>
+                    <span class="item-tag">compressed</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ─── MAIN ─── -->
+    <main class="main" id="main" role="main" tabindex="-1">
+        <!-- pages are rendered by JavaScript -->
+        <div id="pageContainer"></div>
+    </main>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── page content ──────────────────────────────────────────────
+            const PAGES = {
+
+                home: {
+                    title: 'Home',
+                    sub: 'Disgaea DS reverse engineering documentation',
+                    html: `
+                <p>Welcome to the <strong>Disgaea DS Documentation wiki</strong> — a clean reference for the file formats used in Nippon Ichi Software's <em>Disgaea DS</em>.</p>
+
+                <h2>File Formats</h2>
+                <ul>
+                  <li><a href="#dsarcfl">DSARCFL</a> – archive container for audio / music / sound effects</li>
+                  <li><a href="#dseq">DSEQ</a> – music archive bundling SSEQ + SBNK + SWAR</li>
+                  <li><a href="#sbnk">SBNK</a> – sound bank mapping instruments to samples</li>
+                  <li><a href="#sseq">SSEQ</a> – sequenced instruction format for music</li>
+                  <li><a href="#strm">STRM</a> – Nintendo DS streamed audio (used for sound effects)</li>
+                  <li><a href="#swar">SWAR</a> – wave archive containing SWAV files</li>
+                  <li><a href="#swav">SWAV</a> – Nintendo DS wave audio container</li>
+                  <li><a href="#imy">IMY</a> – compressed image format</li>
+                  <li><a href="#mpd">MPD</a> – tile-based map data</li>
+                  <li><a href="#mpds">MPDS</a> – compressed MPD map file</li>
+                </ul>
+
+                <h2>ROM Structure</h2>
+                <p>High-level overview of the <code>Disgaea DS</code> ROM layout. File tree adapted from <a href="https://disgaea.rustedlogic.net/Disgaea_1/DS/File_tree" target="_blank" rel="noopener">rustedlogic.net</a>.</p>
+
+                <div class="file-tree">[root]
+                ├── ThumbBg.dat [DSARCIDX]
+                │   └── Thubg*.imy (19 files) [IMY] – Savefile thumbnails
+                ├── bg.dat [DSARCIDX]
+                │   └── bg*.mpb (117 files) [MPB] (MAP, IMY)
+                ├── bgm.dat{,.tbl} [DSARCFL]
+                │   └── bgm__.msnd (33 files) [DSEQ]
+                ├── bu.dat [DSARCIDX]
+                │   └── bu_.mpb (101 files) [MPB] (MAP, IMY)
+                ├── ch_*.amd (234 files) – Char/class animation data
+                ├── ch_*.amt (234 files) – Char/class animation data
+                ├── chclut.bin – Sprite color LUTs (for sprts.bin)
+                ├── chtex.bin – Sprite metadata (for sprts.bin)
+                ├── demoDbg.dat [DSARCIDX]
+                │   └── file* (280 files) – ASCII text (debug text)
+                ├── dspack.dat [DSARCIDX] – (start.dat for DS)
+                │   ├── back.imy [IMY]
+                │   ├── base.dso [DSO] (DSARCIDX)
+                │   │   ├── base.dsm [DSM]
+                │   │   └── baseoe__.imy (5 files) [IMY]
+                │   ├── cursor.dso [DSO] (DSARCIDX)
+                │   │   ├── cursor.dsm [DSM]
+                │   │   └── cursoroe__.imy (2 files) [IMY]
+                │   ├── enn.dso [DSO] (DSARCIDX)
+                │   │   ├── enn.dsm [DSM]
+                │   │   └── ennoe__.imy (2 files) [IMY]
+                │   ├── enn.imy [IMY]
+                │   ├── establish_.imy (23 files) [IMY] – Top screen Settings
+                │   ├── helpbg*.imy (7 files) [IMY] – Top screen Help
+                │   ├── loading*.imy (6 files) [IMY] – Loading screen clock-Prinny
+                │   ├── mgate.dso [DSO] (DSARCIDX)
+                │   │   ├── mgate.dsm [DSM]
+                │   │   └── mgateoe_*.imy (4 files) [IMY]
+                │   ├── pliny01.imy [IMY]
+                │   ├── sys7.imy [IMY]
+                │   ├── taiho.dso [DSO] (DSARCIDX)
+                │   │   ├── taiho.dsm [DSM]
+                │   │   └── taihooe_*.imy (6 files) [IMY]
+                │   ├── taiho2.dso [DSO] (DSARCIDX)
+                │   │   ├── taiho2.dsm [DSM]
+                │   │   └── taiho2oe_*.imy (4 files) [IMY]
+                │   ├── titdemo{3,4,5}.imy (3 files) [IMY] – Titlescreen opening
+                │   ├── waku3.imy [IMY]
+                │   └── wbg*.imy (17 files) [IMY] – Top-screen titlescreen logo
+                ├── efctobj.dat [DSARCIDX]
+                │   └── effect_.dsm (133 files) [DSM]
+                ├── efcttex.dat [DSARCIDX]
+                │   └── effect___.imy (270 files) [IMY]
+                ├── mapobjs.dat [DSARCIDX]
+                │   └── mp_o_.dsm (234 files) [DSM]
+                ├── maptex.dat [DSARCIDX]
+                │   └── mp_{t,prd}*.imy (785 files) [IMY] – Map textures
+                ├── mpds.dat [DSARCIDX]
+                │   └── mp*.mpds (198 files) [MPDS] – Map files (compressed)
+                ├── mpds.lst – CSV (filename, mapID)
+                ├── msgvo.dat{,.tbl} [DSARCFL]
+                │   └── _.strm (173 files) [STRM]
+                ├── nafnt.fnt
+                ├── objtex.dat [DSARCIDX]
+                │   └── mp_o*_*.imy (646 files) [IMY] – Map object textures
+                ├── rmaps.dat [DSARCIDX]
+                │   └── 20*.rmd (72 files) – Item world randomized maps
+                ├── script.dat – Scripting
+                ├── se.dat{,.tbl} [DSARCFL]
+                │   ├── ___.se (128 files) [SWAV] – Sound effects
+                │   └── yrah_.swav (4 files) (empty)
+                ├── song.dat{,.tbl} [DSARCFL]
+                │   ├── bgm10.msnd [DSEQ]
+                │   └── song_.msnd (11 files) [DSEQ]
+                ├── sprts.bin – Raw sprite data (use chtex.bin to parse)
+                ├── sys9.imy [IMY] – Tileset for topscreen (map)
+                ├── table.dat [DSARCIDX]
+                │   ├── char.dat – Character/class data
+                │   ├── charhelp.dat – Class help description
+                │   ├── dungeon.dat – Gatekeeper warp data
+                │   ├── ge.dat – Geo effects
+                │   ├── geocube.dat – Geocube effects (multiplayer)
+                │   ├── habit.dat – Item inhabitants
+                │   ├── hospital.dat – Hospital awards
+                │   ├── magic.dat – Specials/spells
+                │   ├── mitem.dat – Items
+                │   ├── musicshop.dat – Song list
+                │   ├── name.dat – Names for randomizer
+                │   ├── thief.dat – Stat stealing entries
+                │   ├── wish.dat – Dark Assembly bills
+                │   └── zukan.dat – Bestiary entries
+                ├── talk.dat – Dialogue + scripting
+                ├── uwbg*.mpb (12 files) [MPB] (MAP, IMY)
+                ├── voice.dat{,.tbl} [DSARCFL]
+                │   ├── ___.se (3 files) [SWAV]
+                │   └── ___.swav (185 files) [SWAV]
+                ├── waku{,2,3}.imy (3 files) [IMY]
+                └── wbg{,2,3}.imy (3 files) [IMY]</div>
+
+                <p style="margin-top:0.8em;font-size:0.85rem;color:#64748b;">
+                  <span class="badge">Info</span> This wiki is maintained as a reference for modders, researchers, and archivists.
+                </p>
+              `
+                },
+
+                dsarcfl: {
+                    title: 'DSARCFL',
+                    sub: 'DSARC FL archive format specification',
+                    html: `
+                <p><span class="badge">archive</span> <strong>DSARC FL</strong> is a container format used to bundle multiple audio, music, and sound effect files into a single <code>.dat</code> archive.</p>
+
+                <ul>
+                  <li><strong>Magic</strong>: ASCII <code>"DSARC FL"</code> (8 bytes)</li>
+                  <li><strong>Version</strong>: 32-bit unsigned integer (little-endian)</li>
+                  <li><strong>Entry Count</strong>: 32-bit unsigned integer (little-endian)</li>
+                  <li><strong>Header Size</strong>: 16 bytes (magic + count + version)</li>
+                  <li><strong>Name Field Size</strong>: 40 bytes per entry (UTF-8, null-padded)</li>
+                  <li><strong>Entry Info Size</strong>: 8 bytes per entry (size + offset)</li>
+                </ul>
+
+                <h3>File Layout</h3>
+                <pre>+----------------------+   <-- offset 0
+                | Magic (8 bytes)      |       "DSARC FL"
+                +----------------------+   <-- offset 8
+                | Count (4 bytes)      |       Number of entries (uint32 LE)
+                +----------------------+   <-- offset 12
+                | Version (4 bytes)    |       Format version (uint32 LE)
+                +----------------------+   <-- offset 16 (HEADER_SIZE)
+                | Entry Table ...      |       count * (40 + 8) bytes
+                +----------------------+   <-- data start
+                | File Data Section... |
+                +----------------------+   <-- EOF</pre>
+
+                <h3>Header</h3>
+                <table>
+                  <thead><tr><th>Offset</th><th>Length</th><th>Type</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td>0x00</td><td>8</td><td>char[8]</td><td>Magic identifier <code>"DSARC FL"</code></td></tr>
+                    <tr><td>0x08</td><td>4</td><td>u32</td><td>Number of entries (little-endian)</td></tr>
+                    <tr><td>0x0C</td><td>4</td><td>u32</td><td>Archive version (little-endian), currently 1</td></tr>
+                  </tbody>
+                </table>
+
+                <h3>Entry Table</h3>
+                <p>Each entry consists of a 40-byte name, followed by 8 bytes of metadata.</p>
+                <table>
+                  <thead><tr><th>Field</th><th>Length</th><th>Type</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td>Name</td><td>40</td><td>char[40]</td><td>Null-padded UTF-8 relative file path</td></tr>
+                    <tr><td>File Size</td><td>4</td><td>u32</td><td>Data length in bytes</td></tr>
+                    <tr><td>Data Offset</td><td>4</td><td>u32</td><td>Byte offset to file data (from start of archive)</td></tr>
+                  </tbody>
+                </table>
+
+                <h3>Data Section</h3>
+                <p>File data is concatenated immediately after the entry table, in the same order as table entries.</p>
+              `
+                },
+
+                dseq: {
+                    title: 'DSEQ',
+                    sub: 'Music archive format (.msnd)',
+                    html: `
+                <p><span class="badge">music</span> <strong>DSEQ</strong> is a custom archive that bundles Nintendo DS music data into a single <code>.msnd</code> file. It contains exactly three sequential binary chunks:</p>
+                <ul>
+                  <li><strong><a href="#sseq">SSEQ</a></strong> – sequence data</li>
+                  <li><strong><a href="#sbnk">SBNK</a></strong> – sound bank</li>
+                  <li><strong><a href="#swar">SWAR</a></strong> – wave archive</li>
+                </ul>
+
+                <h3>File Structure</h3>
+                <table>
+                  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td>0x00</td><td>4</td><td>char[4]</td><td>Magic <code>"DSEQ"</code></td></tr>
+                    <tr><td>0x04</td><td>12</td><td>uint8[12]</td><td>Reserved (always zero)</td></tr>
+                    <tr><td>0x10</td><td>4</td><td>uint32</td><td>SSEQ offset + 0x10</td></tr>
+                    <tr><td>0x14</td><td>4</td><td>uint32</td><td>SBNK offset</td></tr>
+                    <tr><td>0x18</td><td>4</td><td>uint32</td><td>SWAR offset</td></tr>
+                    <tr><td>0x1C</td><td>4</td><td>uint32</td><td>Reserved (zero)</td></tr>
+                    <tr><td>0x20</td><td>4</td><td>uint32</td><td>SSEQ size</td></tr>
+                    <tr><td>0x24</td><td>4</td><td>uint32</td><td>SBNK size</td></tr>
+                    <tr><td>0x28</td><td>4</td><td>uint32</td><td>SWAR size</td></tr>
+                    <tr><td>0x2C</td><td>4</td><td>uint32</td><td>Unknown</td></tr>
+                  </tbody>
+                </table>
+
+                <div class="note">
+                  <strong>Note:</strong> <code>SSEQ offset + 0x10</code> is stored at 0x10 — subtract 0x10 to get the actual SSEQ start. All offsets are relative to the beginning of the file.
+                </div>
+
+                <h3>Chunk Order</h3>
+                <p>The order is fixed: <strong>SSEQ → SBNK → SWAR</strong>. Each chunk is placed immediately after the previous one. The <code>SWAR</code> size is a 64-bit value split into two 32-bit little-endian values.</p>
+              `
+                },
+
+                sbnk: {
+                    title: 'SBNK',
+                    sub: 'Sound bank – instrument mapping',
+                    html: `
+                <p><span class="badge">bank</span> <strong>SBNK</strong> files map instrument patches to a group of sound files in <a href="#swav">SWAV</a> archives. Think of them as a lightweight SoundFont or a DirectWave bank in FL Studio.</p>
+
+                <p>In <em>Disgaea DS</em>, SBNK files link all music sequences to their samples. They must be paired with a <a href="#swar">SWAR</a> to resolve sample references — the game's code handles this directly, unlike the standard Nintendo SDK <code>SDAT</code> approach.</p>
+
+                <p>SBNK files are only found inside <a href="#dseq">DSEQ</a> files, which are stored in <a href="#dsarcfl">DSARCFL</a> archives.</p>
+
+                <h3>Documentation</h3>
+                <ul>
+                  <li><a href="https://gota7.github.io/NitroStudio2/specs/bank.html" target="_blank" rel="noopener">NitroStudio2 – SBNK spec</a></li>
+                  <li><a href="https://problemkaputt.de/gbatek-ds-sound-files-sbnk-sound-bank.htm" target="_blank" rel="noopener">GBATEK – SBNK</a></li>
+                </ul>
+              `
+                },
+
+                sseq: {
+                    title: 'SSEQ',
+                    sub: 'Sequenced instruction format for music',
+                    html: `
+                <p><span class="badge">sequence</span> <strong>SSEQ</strong> is a sequenced instruction format, typically compiled from an ASCII tracker-like source. In <em>Disgaea DS</em>, all music uses SSEQ.</p>
+
+                <p>For SSEQ to play sound, it must be linked to an <a href="#sbnk">SBNK</a> and a <a href="#swar">SWAR</a>. SSEQ files are only found inside <a href="#dseq">DSEQ</a> files stored in <a href="#dsarcfl">DSARCFL</a> archives.</p>
+
+                <h3>Documentation</h3>
+                <ul>
+                  <li><a href="https://gota7.github.io/NitroStudio2/specs/sequence.html" target="_blank" rel="noopener">NitroStudio2 – SSEQ spec</a></li>
+                  <li><a href="https://www.feshrine.net/hacking/doc/nds-sdat.php#sseq" target="_blank" rel="noopener">FeshRine – SDAT / SSEQ</a></li>
+                  <li><a href="https://tcrf.net/Format:SDAT/SSEQ" target="_blank" rel="noopener">TCRF – SDAT / SSEQ</a></li>
+                </ul>
+              `
+                },
+
+                strm: {
+                    title: 'STRM',
+                    sub: 'Nintendo DS streamed audio',
+                    html: `
+                <p><span class="badge">stream</span> <strong>STRM</strong> is a chunk-encoded audio format from the Nintendo DS SDK. It appears in about half of all DS games due to its good quality-to-size ratio.</p>
+
+                <p>In <em>Disgaea DS</em>, developers use <code>.strm</code> files for sound effects, not music — and they use <code>.strm</code> and <code>.swav</code> interchangeably despite being different formats. See <a href="#swav">SWAV</a> for the wave format.</p>
+
+                <h3>Documentation</h3>
+                <ul>
+                  <li><a href="https://gota7.github.io/NitroStudio2/specs/stream.html" target="_blank" rel="noopener">NitroStudio2 – STRM spec</a></li>
+                </ul>
+              `
+                },
+
+                swar: {
+                    title: 'SWAR',
+                    sub: 'Sound wave archive',
+                    html: `
+                <p><span class="badge">wave archive</span> <strong>SWAR</strong> is an archive of <a href="#swav">SWAV</a> files, used by an <a href="#sbnk">SBNK</a> to map and link samples.</p>
+
+                <p>SWAR files are only found inside <a href="#dseq">DSEQ</a> files stored in <a href="#dsarcfl">DSARCFL</a> archives.</p>
+
+                <h3>Documentation</h3>
+                <ul>
+                  <li><a href="https://gota7.github.io/NitroStudio2/specs/waveArchive.html" target="_blank" rel="noopener">NitroStudio2 – SWAR spec</a></li>
+                  <li><a href="https://loveemu.hatenablog.com/entry/20091002/nds_formats" target="_blank" rel="noopener">Loveemu – NDS formats</a></li>
+                  <li><a href="https://problemkaputt.de/gbatek-ds-sound-files-swar-sound-wave-archive.htm" target="_blank" rel="noopener">GBATEK – SWAR</a></li>
+                  <li><a href="https://openkh.dev/khds/common/file/type/swar.html" target="_blank" rel="noopener">OpenKH – SWAR</a></li>
+                </ul>
+              `
+                },
+
+                swav: {
+                    title: 'SWAV',
+                    sub: 'Nintendo DS wave audio container',
+                    html: `
+                <p><span class="badge">wave</span> <strong>SWAV</strong> is an audio format container used by the Nintendo DS SDK for almost every commercial DS game.</p>
+
+                <p>In <em>Disgaea DS</em>, the developers use <code>.swav</code> and <code>.strm</code> interchangeably, even though they are different formats. See <a href="#strm">STRM</a> for the stream format.</p>
+
+                <h3>Documentation</h3>
+                <ul>
+                  <li><a href="https://gota7.github.io/NitroStudio2/specs/wave.html" target="_blank" rel="noopener">NitroStudio2 – SWAV spec</a></li>
+                  <li><a href="https://openkh.dev/khds/common/file/type/swav.html" target="_blank" rel="noopener">OpenKH – SWAV</a></li>
+                  <li><a href="https://problemkaputt.de/gbatek-ds-sound-files-swav-sound-wave-data.htm" target="_blank" rel="noopener">GBATEK – SWAV</a></li>
+                </ul>
+              `
+                },
+
+                imy: {
+                    title: 'IMY',
+                    sub: 'Compressed image format',
+                    html: `
+                <p><span class="badge">image</span> <strong>IMY</strong> is a compressed file format used for images in <em>Disgaea DS</em>.</p>
+
+                <h3>Documentation</h3>
+                <ul>
+                  <li><a href="https://disgaea.rustedlogic.net/IMY_format" target="_blank" rel="noopener">RustedLogic – IMY format</a> – reference for decompression</li>
+                </ul>
+              `
+                },
+
+                mpd: {
+                    title: 'MPD',
+                    sub: 'Tile-based map data',
+                    html: `
+                <p><span class="badge">map</span> <strong>MPD</strong> represents tile-based maps used in <em>Disgaea 1</em> and <em>Disgaea DS</em>.</p>
+
+                <h3>Documentation</h3>
+                <ul>
+                  <li><a href="https://disgaea.rustedlogic.net/MPD_format" target="_blank" rel="noopener">RustedLogic – MPD format</a> – reference for a future MPD editor</li>
+                </ul>
+              `
+                },
+
+                mpds: {
+                    title: 'MPDS',
+                    sub: 'Compressed MPD map file',
+                    html: `
+                <p><span class="badge">compressed</span> <strong>MPDS</strong> is a compressed <a href="#mpd">MPD</a> map file.</p>
+
+                <h3>Documentation</h3>
+                <ul>
+                  <li><a href="https://disgaea.rustedlogic.net/MPDS_format" target="_blank" rel="noopener">RustedLogic – MPDS format</a> – reference for decompression</li>
+                </ul>
+              `
+                }
+
+            };
+
+            // ─── DOM refs ──────────────────────────────────────────────────
+            const container = document.getElementById('pageContainer');
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const overlay = document.getElementById('sidebarOverlay');
+            const SITE_NAME = 'Disgaea DS Wiki';
+            const DEFAULT_TITLE = document.title;
+
+            let currentPage = 'home';
+
+            // ─── render ─────────────────────────────────────────────────────
+            function renderPage(id, opts) {
+                const page = PAGES[id];
+                if (!page) return;
+
+                const isInitialLoad = !!(opts && opts.isInitialLoad);
+                currentPage = id;
+
+                const html = `
+              <div class="page active" id="page-${id}">
+                <div class="page-header">
+                  <h1>${page.title}</h1>
+                  ${page.sub ? `<div class="page-sub">${page.sub}</div>` : ''}
+                </div>
+                <div class="page-content">${page.html}</div>
+              </div>
+            `;
+
+                container.innerHTML = html;
+
+                // update sidebar active state + a11y
+                sidebarItems.forEach(el => {
+                    const isActive = el.dataset.page === id;
+                    el.classList.toggle('active', isActive);
+                    if (isActive) {
+                        el.setAttribute('aria-current', 'page');
+                    } else {
+                        el.removeAttribute('aria-current');
+                    }
+                });
+
+                // update URL hash without adding a duplicate history entry
+                if (window.location.hash !== `#${id}`) {
+                    history.pushState(null, '', `#${id}`);
+                }
+
+                // reflect the current page in the browser tab
+                document.title = id === 'home' ? DEFAULT_TITLE : `${page.title} · ${SITE_NAME}`;
+
+                // on an in-app navigation (not the first paint), jump to the top of
+                // the new page and hand focus to its heading, so keyboard and
+                // screen-reader users notice the content changed
+                if (!isInitialLoad) {
+                    window.scrollTo(0, 0);
+                    const heading = container.querySelector('.page-header h1');
+                    if (heading) {
+                        heading.setAttribute('tabindex', '-1');
+                        heading.focus({ preventScroll: true });
+                    }
+                }
+
+                // close sidebar on mobile
+                closeSidebar();
+            }
+
+            // ─── navigation ─────────────────────────────────────────────────
+            function navigateTo(id) {
+                if (PAGES[id]) {
+                    renderPage(id);
+                } else {
+                    renderPage('home');
+                }
+            }
+
+            function getPageFromHash() {
+                const hash = window.location.hash.slice(1) || 'home';
+                return PAGES[hash] ? hash : 'home';
+            }
+
+            // ─── sidebar controls ──────────────────────────────────────────
+            function toggleSidebar() {
+                document.body.classList.toggle('sidebar-open');
+            }
+
+            function closeSidebar() {
+                document.body.classList.remove('sidebar-open');
+            }
+
+            // ─── event listeners ───────────────────────────────────────────
+            sidebarItems.forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = this.dataset.page;
+                    if (id && PAGES[id]) {
+                        navigateTo(id);
+                    }
+                });
+            });
+
+            toggleBtn.addEventListener('click', toggleSidebar);
+            overlay.addEventListener('click', closeSidebar);
+
+            // hashchange covers links/typed URLs; popstate covers the
+            // browser's Back/Forward buttons — keep the view in sync with both
+            function syncToHash() {
+                const id = getPageFromHash();
+                if (id !== currentPage) {
+                    navigateTo(id);
+                }
+            }
+            window.addEventListener('hashchange', syncToHash);
+            window.addEventListener('popstate', syncToHash);
+
+            // close sidebar on Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeSidebar();
+                }
+            });
+
+            // ─── init ──────────────────────────────────────────────────────
+            const initialPage = getPageFromHash();
+            renderPage(initialPage, { isInitialLoad: true });
+
+        })();
+    </script>
+
+</body>
+</html>

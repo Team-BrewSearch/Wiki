@@ -73,7 +73,7 @@
             '<div class="sidebar-brand">' +
             '<a href="' + indexRel + '">' +
             '<span class="brand-icon">📖</span>' +
-            '<span>Disgaea DS Wiki<span class="brand-sub">File Formats</span></span>' +
+            '<span>BrewSearch Reverse Engineering Wiki</span>' +
             '</a></div>' +
             '<div class="sidebar-nav">' +
             '<div class="sidebar-section">' +

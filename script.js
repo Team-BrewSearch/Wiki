@@ -25,7 +25,9 @@
         if (disgaeaIdx !== -1) {
             currentDepth = currentParts.length - disgaeaIdx - 1;
         } else if (currentParts[currentParts.length - 1] !== 'index.html') {
-            currentDepth = currentPath.endsWith('/') ? 0 : 1;
+            const lastSegment = currentParts[currentParts.length - 1] || '';
+            const looksLikeFile = lastSegment.includes('.');
+            currentDepth = (currentPath.endsWith('/') || !looksLikeFile) ? 0 : 1;
         }
 
         let up = currentDepth;

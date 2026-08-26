@@ -1,1 +1,1 @@
-# BrewSearch Team Reverse Engineering Wiki
+# BrewSearch Reverse Engineering Wiki

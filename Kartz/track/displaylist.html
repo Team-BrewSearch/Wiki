@@ -19,7 +19,7 @@
     <tr><td>0x21</td><td>NORMAL</td><td>1</td><td>3 x signed 10-bit, packed low to high, divided by 512. Never used by track data</td></tr>
     <tr><td>0x22</td><td>TEXCOORD</td><td>1</td><td>2 x signed 16-bit, 12.4 fixed point. U in the low 16 bits, V in the high 16</td></tr>
     <tr><td>0x23</td><td>VTX_16</td><td>2</td><td>3 x signed 16-bit. Word 0 is X in the low 16 bits and Y in the high 16, word 1 is Z</td></tr>
-    <tr><td>0x28</td><td>VTX_DIFF</td><td>1</td><td>3 x signed 10-bit delta from the previous vertex. Always <code>0</code> - see below</td></tr>
+    <tr><td>0x28</td><td>VTX_DIFF</td><td>1</td><td>3 x signed 10-bit delta from the previous vertex. Always <code>0</code></td></tr>
     <tr><td>0x2A</td><td>TEXIMAGE_PARAM</td><td>1</td><td><code>0x40000000</code> for textured groups, <code>0x00000000</code> for untextured</td></tr>
     <tr><td>0x2B</td><td>PLTT_BASE</td><td>1</td><td>Always <code>0</code></td></tr>
     <tr><td>0x40</td><td>BEGIN_VTXS</td><td>1</td><td>Low 2 bits are the primitive mode: 0 triangles, 1 quads, 2 triangle strip, 3 quad strip</td></tr>
@@ -30,30 +30,27 @@
 <p>No other opcode appears anywhere in either game's track data.</p>
 
 <h3>Vertex Positions</h3>
-<p>Of the six GX vertex-position opcodes, track data uses exactly two: <code>VTX_16</code> for every genuinely new position, and <code>VTX_DIFF</code> for a position identical to the previous vertex's. The rule is exception-free across all 103,631 vertex-position opcodes in the archive - all 9526 <code>VTX_DIFF</code> occurrences carry a parameter of literally <code>0</code>, and not one of the 84,105 <code>VTX_16</code> occurrences repeats the preceding position.</p>
+<p>Of the six GX vertex-position opcodes, track data uses exactly two: <code>VTX_16</code> for every genuinely new position, and <code>VTX_DIFF</code> - always with a parameter of literally <code>0</code> - for a position identical to the previous vertex's. No <code>VTX_16</code> ever repeats the preceding position.</p>
 <p>Duplicates are common because a mode-0 block emits three independent vertices per triangle, so a triangle reusing a vertex from the one before it restates that position. <code>VTX_16</code>'s raw range is only about plus or minus 8 units, which is why one translate and scale pair is emitted per chunk.</p>
 
 <h3>Group Shape</h3>
-<p>Real chunks follow a consistent shape, confirmed by tracing the retail data:</p>
 <ul>
   <li>A chunk opens with <code>MTX_PUSH</code>, then <code>MTX_TRANS</code>, then <code>MTX_SCALE</code>. The order matters: on hardware both matrix opcodes multiply the current matrix, so <code>MTX_SCALE</code> first would give <code>scale * translate + scale * v</code> instead of <code>translate + scale * v</code>.</li>
   <li>Every <code>TEXIMAGE_PARAM</code> is immediately followed by <code>PLTT_BASE</code> and then a baseline white <code>COLOR</code> of <code>0x7FFF</code>, all before <code>BEGIN_VTXS</code>.</li>
-  <li><code>COLOR</code> persists across an entire texture group - the whole run of blocks under one <code>TEXIMAGE_PARAM</code> - and is re-emitted only when it changes or when a group opens. Exact on 103,363 of 103,363 vertices in Super Star Kartz and 80,245 of 80,245 in Madagascar Kartz.</li>
+  <li><code>COLOR</code> persists across an entire texture group - the whole run of blocks under one <code>TEXIMAGE_PARAM</code> - and is re-emitted only when it changes or when a group opens.</li>
   <li><code>TEXCOORD</code> resets at every <code>BEGIN_VTXS</code>: a fresh block's first vertex emits it explicitly even when it matches the previous block's last one, and only vertices within the same block skip a repeat.</li>
-  <li><code>NORMAL</code> never appears, in either game, across all 183,608 vertices. Track geometry is vertex-colour shaded only.</li>
+  <li><code>NORMAL</code> never appears. Track geometry is vertex-colour shaded only.</li>
   <li>Every non-empty chunk ends with exactly one <code>MTX_POP</code> immediately after its final <code>END_VTXS</code>, then whatever no-ops complete the final packed word.</li>
 </ul>
 
 <h3>END_VTXS Padding</h3>
 <p>When <code>END_VTXS</code> lands as the fourth opcode of its packed word, a whole extra padding word of four no-ops follows before the next real opcode, even though the group is already word-aligned. When it lands in slot 0, 1 or 2, no padding follows at all. The rule keys only on which slot the opcode happened to land in.</p>
 
-<h3>Matrix Stack Balance</h3>
 <div class="note">
-  <strong>Note:</strong> Every non-empty chunk contains exactly one <code>MTX_PUSH</code> and pops exactly one level, with zero exceptions archive-wide - FarFarAway has 386 pushes, 386 popped levels and 386 non-empty chunks. The DS position and direction matrix stack is only 31 levels deep and raises a <code>GXSTAT</code> overflow bit, so a chunk that pushes without popping is a load-time hardware fault rather than a cosmetic difference.
+  <strong>Note:</strong> Every non-empty chunk contains exactly one <code>MTX_PUSH</code> and pops exactly one level. The DS position and direction matrix stack is only 31 levels deep and raises a <code>GXSTAT</code> overflow bit, so a chunk that pushes without popping is a load-time hardware fault rather than a cosmetic difference.
 </div>
 
 <h3>Textured, Untextured and Empty Chunks</h3>
-<p>Three distinct chunk shapes appear in shipped data:</p>
 <table>
   <thead><tr><th>Shape</th><th>Header</th><th>Display list</th></tr></thead>
   <tbody>
@@ -63,24 +60,22 @@
   </tbody>
 </table>
 
-<p>Across all 3996 chunks of all 16 Super Star Kartz tracks there are exactly 8 empty chunks, and zero chunks whose display list is non-empty but emits no vertices. FarFarAway has 7 <code>texCount == 0</code> chunks: 2 genuinely empty, and 5 carrying real untextured geometry with <code>dlSize</code> of 144, 132, 132, 132 and 132, decoding to 6, 4, 4, 4 and 4 triangles.</p>
-
-<p>A texture index of 0 never occurs: untextured geometry is expressed by the shape above, not by a reference entry pointing at slot 0.</p>
+<p>Empty chunks are rare - 8 across all 3996 chunks of Super Star Kartz - and no chunk has a non-empty display list that emits no vertices. A texture index of 0 never occurs: untextured geometry is expressed by the shape above, not by a reference entry pointing at slot 0.</p>
 
 <h3>Primitive Modes and Strips</h3>
-<p>Real chunks use mode 2 triangle strips extensively, not just mode 0 separate triangles: a strip of N triangles costs N + 2 vertices instead of 3N. No mode-2 block anywhere has fewer than 4 vertices, across all 6885 of them.</p>
-<p>Three constraints describe how strips are built, checked against all 9145 texture groups in both games:</p>
+<p>Real chunks use mode 2 triangle strips extensively, not just mode 0 separate triangles: a strip of N triangles costs N + 2 vertices instead of 3N. No mode-2 block anywhere has fewer than 4 vertices.</p>
+<p>Three constraints describe how strips are built:</p>
 <ol>
-  <li><strong>Sequential.</strong> A strip is only ever extended with the very next triangle. Exactly one group in 9145 is stripped better than that.</li>
+  <li><strong>Sequential.</strong> A strip is only ever extended with the very next triangle.</li>
   <li><strong>Never rotated.</strong> A strip continues only when the candidate triangle is already written as <code>(x, y, z)</code> for the pair the strip needs.</li>
-  <li><strong>The fallback is final.</strong> Once a triangle cannot open a strip, every remaining triangle in the group goes out as one list. Not one of the 9145 groups has a strip after a list.</li>
+  <li><strong>The fallback is final.</strong> Once a triangle cannot open a strip, every remaining triangle in the group goes out as one list.</li>
 </ol>
 <p>Block layout is an authoring choice, not a property of the geometry: mode-0 blocks routinely hold triangles that would chain into perfectly valid strips, and a group opening with a two-triangle strip may then fall back or ship as a pure list with nothing in the geometry to separate the two cases.</p>
 
 <h3>Group Boundaries</h3>
-<p>Of the 9145 groups, every one either opens its chunk (7698) or follows a different texture (1446). Exactly one - chunk 0 of Madagascar's PlaneWreck - reopens the same texture, so a new <code>TEXIMAGE_PARAM</code> is very nearly, but not quite, a reliable signal for a texture change.</p>
+<p>Every group either opens its chunk or follows a different texture, with exactly one exception across both games - chunk 0 of Madagascar's PlaneWreck reopens the same texture. A new <code>TEXIMAGE_PARAM</code> is very nearly, but not quite, a reliable signal for a texture change.</p>
 
 <h3>Scale</h3>
-<p><code>MTX_SCALE</code> is always a clean power of two - 2, 4, 8, 16, 32, 64 and 256 are observed - but not the smallest one that fits the chunk's own geometry: only 212 of FarFarAway's 386 non-empty chunks match that, and the rest use a strictly larger value. It reflects the level tool's nominal cell size for that chunk index, which the geometry does not record.</p>
+<p><code>MTX_SCALE</code> is always a clean power of two - 2, 4, 8, 16, 32, 64 and 256 are observed - but not the smallest one that fits the chunk's own geometry. It reflects the level tool's nominal cell size for that chunk index, which the geometry does not record.</p>
 </body>
 </html>

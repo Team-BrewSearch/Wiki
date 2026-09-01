@@ -201,14 +201,21 @@
                     label: 'RDF',
                     tag: 'resources',
                     sub: 'Resource database and texture slot table',
-                    blurb: 'authored resource order, and the texture slot table a TRK indexes'
+                    blurb: 'the serialised object tree, and the texture slot table a TRK indexes'
+                },
+                {
+                    file: 'resource/raf.html',
+                    label: 'RAF',
+                    tag: 'relocations',
+                    sub: 'Pointer fixup table for an RDF',
+                    blurb: 'the pointer offsets an RDF needs patched at load time'
                 },
                 {
                     file: 'data/other.html',
                     label: 'Other files',
                     tag: 'undecoded',
-                    sub: 'COL, BPVS, ZON and RAF',
-                    blurb: 'collision, visibility, zone bundles and RAF, not reverse-engineered'
+                    sub: 'COL, BPVS and ZON',
+                    blurb: 'collision, visibility and zone bundles, not reverse-engineered'
                 }
             ]
         }

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>A <code>.raf</code> is the pointer-fixup table for the <a href="rdf.html">RDF</a> of the same name. It carries no content of its own: every entry is the byte offset of a word inside the paired <code>.rdf</code> that holds a file offset and has to become a real address when the database is loaded. Both games ship one <code>.raf</code> beside every <code>.rdf</code>, and neither file is usable without the other.</p>
+
+<h3>File Structure</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Entry count</td></tr>
+    <tr><td>0x04</td><td>count * 4</td><td>u32[count]</td><td>Byte offsets into the paired <code>.rdf</code></td></tr>
+  </tbody>
+</table>
+
+<p>The file is exactly <code>4 + 4 * count</code> bytes, with no header, magic or padding.</p>
+
+<h3>Loading</h3>
+<p>The whole <code>.rdf</code> is read into one contiguous block, then each offset is patched in place. After that pass every pointer in the database is a live address.</p>
+
+<pre>for (u32 o : raf.offsets)
+    *(u32*)(rdf + o) += (u32)rdf;</pre>
+
+<h3>Rules</h3>
+<ul>
+  <li>Every offset is a multiple of 4 and lands at least four bytes before the end of the paired <code>.rdf</code>. No offset appears twice.</li>
+  <li>Every word the table points at is itself a valid in-file offset, and never zero. There is no null-pointer encoding - a property with nothing to point at is omitted from its record instead.</li>
+  <li>The offsets are <strong>not</strong> sorted. They follow the order the writer emitted the records in, so a reader must not assume ascending order.</li>
+  <li>The words pointed at are not all 4-byte aligned, because string pointers address a byte-packed pool.</li>
+</ul>
+
+<div class="note">
+  <strong>Rewriting:</strong> Anything that moves a record inside the <code>.rdf</code> invalidates both the stored offset and this table, and the pointer set cannot be recovered from the <code>.rdf</code> alone - a plausible file offset is indistinguishable from an integer property of the same magnitude. A rewritten database has to emit the <code>.raf</code> from the same pass that lays out the records.
+</div>
+</body>
+</html>

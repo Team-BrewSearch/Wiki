@@ -32,9 +32,10 @@
 ├── MAD.gda - Madagascar Kartz archive data, 1377 entries
 ├── MAD.gdf - path table
 ├── MAD.gdt - offset/size table
-├── main.rdf + main.raf [RDF] - resource database
+├── main.rdf [RDF] - resource database
 ├── ingamemenu.rdf, menupages.rdf [RDF] - Super Star Kartz only
-└── maintrack&lt;track&gt;.rdf [RDF] - one per track, Super Star Kartz only</div>
+├── maintrack&lt;track&gt;.rdf [RDF] - one per track, Super Star Kartz only
+└── *.raf [RAF] - one per .rdf, its pointer fixup table</div>
 
 <p>Entries inside the archive are addressed by path, one per track directory:</p>
 
@@ -46,6 +47,8 @@
 
 models\tracks\farfaraway\
 └── *.zon - scenery bundles, not reverse-engineered</div>
+
+<p>Nothing in the archive records which files belong to a track. The <a href="resource/rdf.html">RDF</a> does: a track's <code>model</code> list names its <code>.col</code>, <code>.trk</code> and <code>.bpvs</code> by archive index, and its texture table gives the slot each <code>.5tx</code> occupies.</p>
 
 <p style="margin-top:0.8em;font-size:0.85rem;color:#64748b;">
   <span class="badge">Info</span> This wiki is maintained as a reference for modders, researchers, and archivists.

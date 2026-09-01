@@ -35,7 +35,15 @@
 <p>One contiguous region per GDT entry, with no header of its own. Every entry ends padded with zero bytes up to the next 32-byte boundary.</p>
 
 <h3>Shared Content</h3>
-<p>The shipped archive points multiple GDT entries at the <strong>same</strong> GDA offset whenever their content is byte-identical: a driver's <code>player</code> and <code>ai</code> texture variants share one texture, two tracks' skyboxes share one zone mesh. 327 of Super Star Kartz's 1770 entries do this, covering roughly 963 KB.</p>
+<p>The shipped archive points multiple GDT entries at the <strong>same</strong> GDA offset whenever their content is byte-identical: a driver's <code>player</code> and <code>ai</code> texture variants share one texture, two tracks' skyboxes share one zone mesh.</p>
+
+<table>
+  <thead><tr><th>Archive</th><th>Entries</th><th>Distinct offsets</th><th>Duplicate references</th><th>Bytes saved</th></tr></thead>
+  <tbody>
+    <tr><td>Super Star Kartz <code>DWK.gda</code></td><td>1770</td><td>1443</td><td>327</td><td>941 KB</td></tr>
+    <tr><td>Madagascar Kartz <code>MAD.gda</code></td><td>1377</td><td>1132</td><td>245</td><td>626 KB</td></tr>
+  </tbody>
+</table>
 
 <div class="note">
   <strong>Note:</strong> The sharing is load-bearing. An archive rebuilt with a private copy per entry decodes correctly but corrupts the running game, dropping geometry and unrelated character, kart and UI assets. The engine appears to cache a loaded asset by its source GDA offset, so two entries sharing an offset load once rather than twice.

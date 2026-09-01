@@ -24,13 +24,33 @@
     <tr><td>0x04</td><td>2</td><td>u16</td><td><code>0xFEFF</code>, byte-order mark</td></tr>
     <tr><td>0x06</td><td>2</td><td>u16</td><td><code>0x0100</code>, version</td></tr>
     <tr><td>0x08</td><td>4</td><td>u32</td><td>Total file size</td></tr>
-    <tr><td>0x0C</td><td>2</td><td>u16</td><td><code>textureParam</code> - <code>0x0010</code> for every shipped texture but one</td></tr>
-    <tr><td>0x0E</td><td>2</td><td>u16</td><td><code>formatHint</code> - <code>0x0001</code> for format 7, <code>0x0002</code> for the paletted, A3I5 and A5I3 formats, rarer values for format 5</td></tr>
+    <tr><td>0x0C</td><td>2</td><td>u16</td><td><code>textureParam</code> - <code>0x0010</code> on every shipped texture in both games</td></tr>
+    <tr><td>0x0E</td><td>2</td><td>u16</td><td><code>paletteBanks</code> - one more than the number of palette banks the image needs</td></tr>
   </tbody>
 </table>
 
+<h4>The field at 0x0E</h4>
+<p>Each pixel format addresses a fixed number of palette entries at a time. The field is that many divided into the <code>PALT</code> section's <code>numColors</code>, rounded up, plus one. A DIRECT texture, which has no palette, stores 1.</p>
+
+<pre>banks = (format == DIRECT) ? 0 : max(1, ceil(numColors / entriesPerBank[format]))
+paletteBanks = banks + 1</pre>
+
+<table>
+  <thead><tr><th>Format</th><th>Entries per bank</th><th>Observed colour counts</th><th>Observed field values</th></tr></thead>
+  <tbody>
+    <tr><td>1 A3I5</td><td>32</td><td>32, 64</td><td>0x0002, 0x0003</td></tr>
+    <tr><td>2 PLTT4</td><td>4</td><td>2, 4, 8, 16</td><td>0x0002, 0x0003, 0x0005</td></tr>
+    <tr><td>3 PLTT16</td><td>16</td><td>4, 8, 16, 32, 48, 80</td><td>0x0002, 0x0003, 0x0004, 0x0006</td></tr>
+    <tr><td>4 PLTT256</td><td>256</td><td>256, 512, 3072</td><td>0x0002, 0x0003, 0x000D</td></tr>
+    <tr><td>6 A5I3</td><td>8</td><td>8, 16</td><td>0x0002, 0x0003</td></tr>
+    <tr><td>7 DIRECT</td><td>-</td><td>0</td><td>0x0001</td></tr>
+  </tbody>
+</table>
+
+<p>Values above <code>0x0002</code> are simply textures shipping more than one palette for the same image; the largest, <code>0x000D</code>, is a PLTT256 image carrying twelve banks of 256.</p>
+
 <div class="note">
-  <strong>Note:</strong> The fields at 0x0C and 0x0E are inert when reading a texture and load-bearing when writing one. A file that zeroes them decodes identically but is rejected by the game, which draws the affected texture as a solid fallback colour.
+  <strong>Note:</strong> A file that zeroes 0x0C and 0x0E decodes identically but is rejected by the game, which draws the texture as a solid fallback colour. A writer does not have to preserve the field blindly - it can compute it from <code>numColors</code> and the format.
 </div>
 
 <h3>PALT Section</h3>
@@ -65,7 +85,7 @@
 
 <p>Rows are addressed by the padded width, then the leftmost <code>origWidth</code> columns and first <code>origHeight</code> rows are kept. Every shipped texture already has <code>origWidth</code> and <code>origHeight</code> equal to its padded size, so the crop is a no-op there, but it is required for correctness in general.</p>
 
-<p>The byte at +0x09 is <code>log2(width / 8)</code> with zero exceptions across all 1101 shipped textures; it is not a flags field.</p>
+<p>The byte at +0x09 is <code>log2(width / 8)</code>, not a flags field.</p>
 
 <h3>Pixel Formats</h3>
 <table>
@@ -109,11 +129,11 @@
 <p>Colours are 15-bit: R in bits 0-4, G in bits 5-9, B in bits 10-14, bit 15 unused. Conversion to 8-bit uses rounding tables rather than bit replication - raw 5-bit value 3 becomes 25, not the 24 a naive <code>&lt;&lt; 3 | &gt;&gt; 5</code> produces.</p>
 
 <h3>The Magenta Colorkey</h3>
-<p>Transparency for foliage, chain-link, glass and similar cutout textures is <strong>not</strong> <code>c0xp</code>. Those textures paint pure magenta, RGB (255, 0, 255), into the area that should be invisible: <code>FF_tree03.5tx</code> uses it for 56.7% of its pixels and <code>FF_chain.5tx</code> for 24.2%, against 6.4% for an ordinarily opaque texture where it is only an unused palette slot.</p>
-<p>Any pixel whose decoded RGB is exactly (255, 0, 255) is fully transparent, in every format. This is a content convention layered on top of the hardware format - real DS hardware has no colorkey, only <code>c0xp</code> and per-format alpha.</p>
+<p>Transparency for foliage, chain-link, glass and similar cutout textures is <strong>not</strong> <code>c0xp</code>. Those textures paint pure magenta, RGB (255, 0, 255), into the area that should be invisible - <code>FF_tree03.5tx</code> uses it for 56.7% of its pixels.</p>
+<p>Any pixel whose decoded RGB is exactly (255, 0, 255) is fully transparent, in every format. This is a content convention layered on top of the hardware format: real DS hardware has no colorkey, only <code>c0xp</code> and per-format alpha.</p>
 
-<h3>c0xp Is Set on Six Textures, and Track Geometry Ignores It</h3>
-<p>Six textures across both games set <code>c0xp</code>: <code>green_s</code> in Super Star Kartz, and <code>NY_water</code>, <code>WH_river</code> and <code>VO_lava_islands</code> - each in a track and its <code>_Reverse</code> variant - in Madagascar Kartz. Nothing is keyed out in any of them. Honouring the flag punches holes through geometry: <code>NY_water</code> loses 20.6% of its pixels, and its palette entry 0 is a water blue no different from entries 1 to 3, while <code>WH_river</code>'s entries 0 and 1 are byte-identical.</p>
-<p>On hardware, colour-0 transparency is bit 29 of <code>TEXIMAGE_PARAM</code>, not a property of the file. All 9145 textured groups across both games' tracks - 4792 in Super Star Kartz, 4353 in Madagascar Kartz - carry that bit clear, so a track draws palette index 0 opaque whatever its texture file says.</p>
+<h3>Track Geometry Ignores c0xp</h3>
+<p>Six textures across both games set <code>c0xp</code> - <code>green_s</code> in Super Star Kartz, and <code>NY_water</code>, <code>WH_river</code> and <code>VO_lava_islands</code> in Madagascar Kartz - and nothing is keyed out in any of them. Honouring the flag punches holes through geometry.</p>
+<p>On hardware, colour-0 transparency is bit 29 of <code>TEXIMAGE_PARAM</code>, not a property of the file, and every textured group in both games' tracks carries that bit clear. A track draws palette index 0 opaque whatever its texture file says.</p>
 </body>
 </html>

@@ -160,6 +160,57 @@
                     blurb: 'gameplay tables, shader bytecode and UI data, not reverse-engineered'
                 }
             ]
+        },
+        {
+            name: 'Madagascar Kartz / Super Star Kartz',
+            dir: 'Kartz',
+            home: 'kartz.html',
+            sub: 'Madagascar Kartz and DreamWorks Super Star Kartz reverse engineering documentation',
+            blurb: 'archive triple, textures, track geometry, display lists, and resource databases',
+            pages: [
+                {
+                    file: 'archive/gda.html',
+                    label: 'GDA',
+                    tag: 'archive',
+                    sub: 'Archive triple - GDA, GDF and GDT',
+                    blurb: 'three-file archive: raw data, path table, offset/size table'
+                },
+                {
+                    file: 'texture/5tx.html',
+                    label: '5TX',
+                    tag: 'texture',
+                    sub: 'NTTX texture container',
+                    blurb: 'Nintendo DS texture container with PALT and IMGE sections'
+                },
+                {
+                    file: 'track/trk.html',
+                    label: 'TRK',
+                    tag: 'track',
+                    sub: 'Track geometry container',
+                    blurb: 'track geometry: chunk tables, texture references, and tail sections'
+                },
+                {
+                    file: 'track/displaylist.html',
+                    label: 'Display list',
+                    tag: 'geometry',
+                    sub: 'Nintendo DS GX command stream inside a chunk',
+                    blurb: 'the GX opcode stream a TRK chunk carries, and the shape real chunks use'
+                },
+                {
+                    file: 'resource/rdf.html',
+                    label: 'RDF',
+                    tag: 'resources',
+                    sub: 'Resource database and texture slot table',
+                    blurb: 'authored resource order, and the texture slot table a TRK indexes'
+                },
+                {
+                    file: 'data/other.html',
+                    label: 'Other files',
+                    tag: 'undecoded',
+                    sub: 'COL, BPVS, ZON and RAF',
+                    blurb: 'collision, visibility, zone bundles and RAF, not reverse-engineered'
+                }
+            ]
         }
     ];
 

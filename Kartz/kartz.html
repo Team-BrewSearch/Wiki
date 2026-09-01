@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../script.js"></script>
+</head>
+<body>
+<p>Reference for the file formats used in <em>DreamWorks Super Star Kartz</em> on the Nintendo DS, reverse engineered from the retail archive. <em>Madagascar Kartz</em> is the prequel on the same engine and uses every format documented here unchanged: the same archive triple, the same textures, the same track opcodes and chunk layout, the same tail sections. Differences between the two are noted inline; the only substantive one is how the resource database is split.</p>
+
+<h2>File Formats</h2>
+<ul data-list></ul>
+
+<h2>Conventions</h2>
+<p>These hold across every format on this wiki unless a page says otherwise.</p>
+<div class="spec-grid">
+  <div class="label">Byte order</div><div>Little-endian for all integers</div>
+  <div class="label">World positions</div><div>20.12 signed fixed point (value * 4096)</div>
+  <div class="label">Texture coordinates</div><div>12.4 signed fixed point (value * 16)</div>
+  <div class="label">Colours</div><div>RGB555, bit 15 unused in palettes</div>
+  <div class="label">Geometry</div><div>Pre-built Nintendo DS GX display list commands</div>
+  <div class="label">Paths</div><div>Null-terminated ASCII, backslash-separated</div>
+  <div class="label">Transparency</div><div>Magenta colorkey, RGB (255, 0, 255)</div>
+</div>
+
+<h2>Data Layout</h2>
+<p>Both games ship the same set of files in <code>Publish.NDS/</code>: one archive triple holding every asset, and the resource databases that record the order those assets load in.</p>
+
+<div class="file-tree">Publish.NDS/
+├── DWK.gda - Super Star Kartz archive data, 1770 entries
+├── DWK.gdf - path table
+├── DWK.gdt - offset/size table
+├── MAD.gda - Madagascar Kartz archive data, 1377 entries
+├── MAD.gdf - path table
+├── MAD.gdt - offset/size table
+├── main.rdf + main.raf [RDF] - resource database
+├── ingamemenu.rdf, menupages.rdf [RDF] - Super Star Kartz only
+└── maintrack&lt;track&gt;.rdf [RDF] - one per track, Super Star Kartz only</div>
+
+<p>Entries inside the archive are addressed by path, one per track directory:</p>
+
+<div class="file-tree">Models\Tracks\FarFarAway\
+├── FarFarAway.trk [TRK] - track geometry
+├── FarFarAway.col - collision mesh, not reverse-engineered
+├── FarFarAway.bpvs - visibility data, not reverse-engineered
+└── *.5tx [5TX] - the track's own textures
+
+models\tracks\farfaraway\
+└── *.zon - scenery bundles, not reverse-engineered</div>
+
+<p style="margin-top:0.8em;font-size:0.85rem;color:#64748b;">
+  <span class="badge">Info</span> This wiki is maintained as a reference for modders, researchers, and archivists.
+</p>
+</body>
+</html>

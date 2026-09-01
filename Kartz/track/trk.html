@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>A <code>.trk</code> file holds one track's geometry as pre-built Nintendo DS GX display lists, split into chunks. The header is followed by two parallel per-chunk tables, then the chunks themselves, then a run of tail sections the engine reads at load time.</p>
+
+<h3>File Layout</h3>
+<pre>+----------------------+   &lt;-- offset 0
+| File header          |       56 bytes (0x38)
++----------------------+   &lt;-- 0x38
+| Chunk offset table   |       numTotal * u32, absolute file offsets
++----------------------+   &lt;-- 0x38 + numTotal*4
+| Chunk position table |       numTotal * 12 bytes, i32 x/y/z in 20.12
++----------------------+
+| Display list chunks  |       the bulk of the file
++----------------------+
+| Tail sections        |       one contiguous run, five header offsets
++----------------------+   &lt;-- EOF</pre>
+
+<h3>File Header (56 bytes)</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>2</td><td>u16</td><td>Visibility section count - equals the primary chunk count on 10 of 16 tracks and is one higher on the other 6. Also the entry count of the section at 0x14</td></tr>
+    <tr><td>0x02</td><td>2</td><td>u16</td><td><code>numTotal</code> - chunk count</td></tr>
+    <tr><td>0x04</td><td>2</td><td>u16</td><td>Duplicate of <code>numTotal</code>, equal on all 16 tracks</td></tr>
+    <tr><td>0x06</td><td>2</td><td>u16</td><td>Not reverse-engineered - a small per-track value (1, 4, 12, 20, 37, 55, 57, 91, 103, 104, 109), near-identical between a track and its <code>_Reverse</code> variant. Not any texture, chunk or section count</td></tr>
+    <tr><td>0x08</td><td>4</td><td>u32</td><td>Always 0</td></tr>
+    <tr><td>0x0C</td><td>4</td><td>u32</td><td>Chunk offset table start - always <code>0x38</code></td></tr>
+    <tr><td>0x10</td><td>4</td><td>u32</td><td>Chunk position table start - always <code>0x38 + numTotal * 4</code></td></tr>
+    <tr><td>0x14</td><td>4</td><td>u32</td><td>Section offset: vertex-colour palette</td></tr>
+    <tr><td>0x18</td><td>4</td><td>u32</td><td>Entry count for the section at 0x1C. Zero on all 16 tracks</td></tr>
+    <tr><td>0x1C</td><td>4</td><td>u32</td><td>Section offset: texcoord-transform params</td></tr>
+    <tr><td>0x20</td><td>4</td><td>u32</td><td>Entry count for the section at 0x24</td></tr>
+    <tr><td>0x24</td><td>4</td><td>u32</td><td>Section offset: track-section defs</td></tr>
+    <tr><td>0x28</td><td>4</td><td>u32</td><td>Entry count for the section at 0x2C</td></tr>
+    <tr><td>0x2C</td><td>4</td><td>u32</td><td>Section offset: material data</td></tr>
+    <tr><td>0x30</td><td>4</td><td>u32</td><td>Entry count for the section at 0x34</td></tr>
+    <tr><td>0x34</td><td>4</td><td>u32</td><td>Section offset: spatial BVH, running to the end of the file</td></tr>
+  </tbody>
+</table>
+
+<p>Each count sits <em>before</em> the offset it belongs to, so the pairing is <code>(count at X - 4, offset at X)</code>. A zero offset means the section is absent, not that it lives at offset 0.</p>
+
+<h3>Chunk Offset Table</h3>
+<p><code>numTotal</code> absolute file offsets, one per chunk. Nothing requires the position table, or anything else, to follow immediately - each offset can point anywhere in the file that holds a valid chunk.</p>
+
+<h3>Chunk Position Table</h3>
+<p><code>numTotal</code> records of three i32 in 20.12 fixed point: the chunk's world-space centre. A chunk's <code>MTX_TRANS</code> is always exactly this value, never an independently recomputed bounding-box centre.</p>
+
+<h3>Chunk Header (24 bytes)</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>+0x00</td><td>2</td><td>u16</td><td>Chunk index - equal to the chunk's own position in the offset table across all 3996 chunks</td></tr>
+    <tr><td>+0x02</td><td>2</td><td>u16</td><td>Chunk type - <code>0x000E</code> primary, <code>0x0000</code> detail, <code>0x0013</code> on 12 chunks only</td></tr>
+    <tr><td>+0x04</td><td>4</td><td>u32</td><td><code>dlSize</code> - display list byte length following this header, always a multiple of 4</td></tr>
+    <tr><td>+0x08</td><td>4</td><td>u32</td><td><code>coord_scale</code> - a duplicate of this chunk's own <code>MTX_SCALE</code> parameter, in the same raw 20.12 form</td></tr>
+    <tr><td>+0x0C</td><td>4</td><td>u32</td><td>Not reverse-engineered - see below</td></tr>
+    <tr><td>+0x10</td><td>4</td><td>u32</td><td><code>texCount</code> - number of texture reference entries following</td></tr>
+    <tr><td>+0x14</td><td>4</td><td>u32</td><td>Always 0, across all 3996 chunks</td></tr>
+  </tbody>
+</table>
+
+<p>Primary chunks always sort first in the offset table: FarFarAway's 388 chunks are 87 primaries at indices 0-86 followed by 301 detail chunks. The <code>0x0013</code> type appears on 4 chunks in Super Star Kartz's ShippingFreighter and 8 across Madagascar Kartz's ShippingFreighter pair, and nowhere else in either game; what distinguishes it is not known.</p>
+
+<p><code>coord_scale</code> equals the chunk's emitted <code>MTX_SCALE</code> in all 3988 non-empty chunks across all 16 tracks, with zero exceptions - the remaining 8 chunks carry no display list. Values are therefore clean powers of two: <code>0x2000</code>, <code>0x4000</code>, <code>0x8000</code> and so on.</p>
+
+<p>The field at +0x0C is bounded but undecoded. It occupies exactly bits 0-22 (archive-wide OR of <code>0x007FFFFF</code>, 20 to 23 bits per track), is never zero in any of the 3996 chunks, and is mostly unique with 2771 distinct values. It is provably not the vertex count, triangle count, <code>dlSize</code>, chunk position or bounding box, and it is not monotonic in chunk index. Its popcount is bell-shaped around 9 of 23, which fits either a precomputed visibility bitmask or a spatial hash; the data alone cannot separate the two. It shows no correlation with geometry.</p>
+
+<h3>Texture Reference Entries</h3>
+<p><code>texCount</code> entries of 12 bytes follow the chunk header.</p>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>+0x00</td><td>4</td><td>u32</td><td>Display-list-relative byte offset of a <code>TEXIMAGE_PARAM</code> opcode's parameter word</td></tr>
+    <tr><td>+0x04</td><td>4</td><td>u32</td><td>Display-list-relative byte offset of the same group's <code>PLTT_BASE</code> parameter word</td></tr>
+    <tr><td>+0x08</td><td>4</td><td>u32</td><td>Texture index, 1-based. Never 0 in any shipped chunk</td></tr>
+  </tbody>
+</table>
+
+<p>Texture selection is resolved purely through this table. Every real <code>TEXIMAGE_PARAM</code> value in the display list is exactly <code>0x40000000</code> - bit 30, texcoord-transform mode, set, with every VRAM offset, size and format bit zero, which is not a valid standalone hardware texture setup. The engine evidently patches the real VRAM address, format and size into that opcode at load time using this table.</p>
+
+<p>The index is into the level's texture slot table, which the TRK does not contain - see <a href="../resource/rdf.html">RDF</a>.</p>
+
+<h3>Tail Sections</h3>
+<p>The five offsets at 0x14, 0x1C, 0x24, 0x2C and 0x34 point into one <strong>contiguous</strong> run of tail data at the end of the file. On every shipped track the non-zero offsets increase monotonically and the last section runs to the end of the file. What the records mean is not reverse-engineered; their framing is.</p>
+
+<table>
+  <thead><tr><th>Section</th><th>Framing</th></tr></thead>
+  <tbody>
+    <tr><td>0x14</td><td><code>u16[count at 0x00]</code>, 4-byte aligned. Values are RGB555, <code>0x7FFF</code> being white - a per-section colour table</td></tr>
+    <tr><td>0x1C</td><td>16-byte records. Leading <code>u16</code> fields are small counts; the trailing pair is 20.12 fixed-point bounds</td></tr>
+    <tr><td>0x24</td><td><code>count at 0x20</code> records of 32 bytes (FarFarAway 52 x 32 = 1664, IsleOfBerk 44 x 32 = 1408)</td></tr>
+    <tr><td>0x2C</td><td><code>count at 0x28</code> records of 28 bytes, holding 20.12 positions and headings (FarFarAway 4 x 28 = 112)</td></tr>
+    <tr><td>0x34</td><td><code>u32 offsets[count at 0x30]</code> followed by <code>count</code> records of 32 bytes (12 x 4 + 12 x 32 = 432; GallaxharsShip 11 x 4 + 11 x 32 = 396)</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>Note:</strong> The section at 0x34 begins with its own table of <strong>absolute file offsets</strong>, <code>count</code> of them read from 0x30, addressing the records that follow. Verified on all 16 tracks: contiguous, strictly ascending, all in-file, and the first entry always exactly <code>sectionStart + count * 4</code>. Any change to the file's size invalidates all of them, so a rewrite has to shift both the five header offsets and this internal table. At an identical size the stale pointers stay accidentally correct, which hides the problem.
+</div>
+
+<p>Not every in-range word in the tail is a pointer: some fields hold 20.12 coordinates whose raw values land in the same numeric range. In FarFarAway's section at 0x2C, two records contain <code>0x21000</code>, simultaneously the address 135168 and the coordinate 33.0. They are coordinates - as addresses they would land mid-record inside the section at 0x1C, and the surrounding fields read as a heading of 180.0 with mirrored X positions of plus and minus 7.0.</p>
+</body>
+</html>

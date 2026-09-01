@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>Three files travel together and are useless apart: <code>DWK.gda</code> holds the raw bytes, <code>DWK.gdf</code> the paths, <code>DWK.gdt</code> the byte ranges. Madagascar Kartz ships the same triple as <code>MAD.gda</code>, <code>MAD.gdf</code> and <code>MAD.gdt</code>. Entries are addressed by index: entry <em>n</em> takes its path from the GDF and its byte range from the GDT.</p>
+
+<h3>GDF - path table</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Entry count</td></tr>
+    <tr><td>0x04</td><td>count * 4</td><td>u32[count]</td><td>Offsets into the string pool below, one per entry, relative to the pool</td></tr>
+    <tr><td>var</td><td>var</td><td>char[]</td><td>Null-terminated ASCII paths, backslash-separated</td></tr>
+  </tbody>
+</table>
+
+<p>A path looks like <code>Models\Tracks\FarFarAway\FarFarAway.trk</code>.</p>
+
+<h3>GDT - offset/size table</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Always 0</td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>Entry count, matching the GDF's</td></tr>
+    <tr><td>0x08</td><td>count * 8</td><td>{u32 offset, u32 size}[]</td><td>Byte range of each entry inside the GDA</td></tr>
+  </tbody>
+</table>
+
+<p>An entry is present only when <code>size &gt; 0</code> and <code>offset + size</code> fits inside the GDA. Anything else is an empty slot.</p>
+
+<h3>GDA - data</h3>
+<p>One contiguous region per GDT entry, with no header of its own. Every entry ends padded with zero bytes up to the next 32-byte boundary.</p>
+
+<h3>Shared Content</h3>
+<p>The shipped archive points multiple GDT entries at the <strong>same</strong> GDA offset whenever their content is byte-identical: a driver's <code>player</code> and <code>ai</code> texture variants share one texture, two tracks' skyboxes share one zone mesh. 327 of Super Star Kartz's 1770 entries do this, covering roughly 963 KB.</p>
+
+<div class="note">
+  <strong>Note:</strong> The sharing is load-bearing. An archive rebuilt with a private copy per entry decodes correctly but corrupts the running game, dropping geometry and unrelated character, kart and UI assets. The engine appears to cache a loaded asset by its source GDA offset, so two entries sharing an offset load once rather than twice.
+</div>
+</body>
+</html>

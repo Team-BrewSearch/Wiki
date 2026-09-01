@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>Four kinds of file sit in the archive, or beside it, that nothing here decodes. They are listed because each is load-bearing for the running game, and because an edited track leaves them describing the geometry it replaced.</p>
+
+<div class="note">
+  <strong>Status:</strong> Not reverse-engineered.
+</div>
+
+<h3>Files</h3>
+<table>
+  <thead><tr><th>File</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>.col</code></td><td>Per-track collision mesh. One per track, beside the <code>.trk</code></td></tr>
+    <tr><td><code>.bpvs</code></td><td>Visibility and occlusion data, keyed by chunk index. Its section count matches the track's primary chunk count on 10 of 16 Super Star Kartz tracks and is exactly one higher on the other 6 - FarFarAway 87 against 87, GallaxharsShip 88 primaries against 89 sections. The extra section's meaning is unconfirmed</td></tr>
+    <tr><td><code>.zon</code></td><td>Zone and prop model bundles, in the lower-case track directory - for example <code>sharkbeach/water.zon</code>. Their textures occupy the slots a track's authored run steps over, so they matter indirectly to the <a href="../resource/rdf.html">slot table</a></td></tr>
+    <tr><td><code>.raf</code></td><td>Ships paired with every <code>.rdf</code>. Not read at all</td></tr>
+  </tbody>
+</table>
+
+<h3>Keyed by Chunk Index</h3>
+<p><code>.bpvs</code> and the <a href="../track/trk.html">TRK tail sections</a> are both keyed by chunk index rather than by geometry, so they stay structurally valid as long as a track keeps its chunk count, primary and detail split, and per-index positions. A different chunk layout invalidates both: a chunk 5 covering a different world region than the original chunk 5 produces per-chunk visual corruption and rasterizer crashes, and collapsing a track to one chunk contradicts tail data that still describes the original count.</p>
+<p><code>.col</code> is not keyed that way and cannot be sidestepped: after a geometry change the collision mesh still describes the original track.</p>
+</body>
+</html>

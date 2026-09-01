@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>A <a href="../track/trk.html">TRK</a>'s texture index points into a table the TRK itself does not contain. That table is built at load time as the level's resources arrive, and its order is <strong>authored</strong> - it is not archive order, alphabetical order, or anything else derivable from the <a href="../archive/gda.html">archive triple</a>. The order is recorded in the <code>.rdf</code> databases that ship beside the archive.</p>
+
+<h3>Files</h3>
+<table>
+  <thead><tr><th>Game</th><th>Files</th></tr></thead>
+  <tbody>
+    <tr><td>Super Star Kartz</td><td><code>main.rdf</code>, <code>ingamemenu.rdf</code>, <code>menupages.rdf</code>, and one <code>maintrack&lt;track&gt;.rdf</code> per track</td></tr>
+    <tr><td>Madagascar Kartz</td><td>a single <code>main.rdf</code> covering every track</td></tr>
+  </tbody>
+</table>
+
+<p>Each has a paired <code>.raf</code>, which is not reverse-engineered.</p>
+
+<h3>File Structure</h3>
+<p>An <code>.rdf</code> opens with a <code>u32</code> dictionary offset and ends with a string pool. Between them the body is a flat stream of 8-byte entries, each a <code>(u32 type, u32 value)</code> pair. One type is decoded:</p>
+
+<table>
+  <thead><tr><th>Type</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>1</code></td><td><code>value</code> is an archive entry index, into the GDF path table</td></tr>
+  </tbody>
+</table>
+
+<p>Entries are 8-byte aligned <em>within</em> a group, but the groups themselves are only 4-byte aligned: a scan has to step by 4 to find the start of a run and by 8 once inside one. Scanning at 8 throughout finds only half the tracks.</p>
+
+<h3>The Authored Run</h3>
+<p>A level's textures appear as type-1 entries in the order the level author listed them. The track model's own textures come first as one uninterrupted run, cleanly bounded by a non-type-1 entry on either side, with no count field ahead of it and no terminator inside it.</p>
+
+<p>That run is not the whole list. After an unrelated stretch of records, the same block continues with the textures the level's scenery bundle loads, and those take slots too:</p>
+
+<table>
+  <thead><tr><th>Level</th><th>Run</th><th>Later in the same block</th></tr></thead>
+  <tbody>
+    <tr><td>Madagascar SharkBeach</td><td>24</td><td><code>SB_sea_foam</code>, <code>SB_sea_foam_2</code></td></tr>
+    <tr><td>Madagascar FoosaRocks</td><td>20</td><td><code>FR_water</code>, <code>FR_water_1</code>, <code>FR_water_2</code></td></tr>
+    <tr><td>Madagascar Volcano</td><td>10</td><td><code>VO_lava_islands02</code>, <code>VO_lava</code></td></tr>
+    <tr><td>Madagascar WateringHole</td><td>23</td><td><code>WH_river</code>, alone, 676 bytes later</td></tr>
+  </tbody>
+</table>
+
+<p>The bundle directory is the same track name in a different case - all lower-case, beside the track's own mixed-case directory - and holds that level's <code>.zon</code> models. A reversed track has no bundle of its own and shares the forward track's, which is why bundle textures are appended after the track's own rather than taken in file order: FoosaRocks' water is listed long before FoosaRocks_Reverse's run, yet occupies the same relative slots in both.</p>
+
+<h3>From Run to Slot Table</h3>
+<p>Two shipped tracks pin the layout down exactly:</p>
+<ul>
+  <li><strong>Super Star Kartz ShippingFreighter</strong> owns 32 textures, its run is 32 long, and its highest drawn slot is 32. There is nowhere for a leading entry, so the run must start at slot 1.</li>
+  <li><strong>Madagascar Kartz ShippingFreighter</strong> owns 33 textures, its run is 33 long, and it draws slot 34. The run cannot start at slot 1, or slot 34 would have no texture at all.</li>
+</ul>
+
+<p>One rule explains both, with no per-game constant:</p>
+
+<div class="note">
+  <strong>Rule:</strong> Lay the run into the table in order, <strong>skipping slots</strong>. A skipped slot takes the next texture the run omits - a scenery texture, in GDF order - or stays empty when the track owns none to spare.
+</div>
+
+<p>Madagascar's ShippingFreighter then starts at slot 2 because slot 1 is skipped and there is no spare texture for it, leaving slot 1 genuinely empty; Super Star Kartz's starts at slot 1 because it has nothing to skip. How many slots are skipped is forced - the run has to span the table, so it is exactly <code>slots - runLength</code>. Which slots are skipped is the only freedom, and for most tracks there is none of that either: when a track draws exactly as many slots as the run is long, the skips can only be the slots it never draws.</p>
+
+<table>
+  <thead><tr><th>Shape</th><th>Super Star Kartz</th><th>Madagascar Kartz</th></tr></thead>
+  <tbody>
+    <tr><td>Run length equals drawn slots - no freedom</td><td>14 of 16</td><td>7 of 12</td></tr>
+    <tr><td>A run entry has to land on an undrawn slot</td><td>-</td><td>SharkBeach, SharkBeach_Reverse, Volcano</td></tr>
+    <tr><td>A drawn slot has to take a texture the run omits</td><td>ShreksSwamp, ShreksSwamp_Reverse</td><td>PlaneWreck, FoosaRocks, FoosaRocks_Reverse</td></tr>
+  </tbody>
+</table>
+
+<h3>What the Data Does Not Record</h3>
+<ul>
+  <li><strong>Scenery billboards have no authored position.</strong> A level draws billboards - trees, plants - its <code>.rdf</code> never references. All seven of FoosaRocks' (<code>FR_tree</code>, <code>FR_coco_tree</code>, the <code>*_spar</code> plants) appear nowhere in <code>main.rdf</code> as archive references, though the track model draws four of them on hundreds of triangle corners each. Nothing says where in the table they load.</li>
+  <li><strong>The table is not a permutation.</strong> Six textures are bound to two slots each: two in Madagascar's PlaneWreck, three in FoosaRocks (<code>FR_fast_rock</code>, <code>FR_grass_tile</code>, <code>FR_fast_mud</code>), and <code>SS_Treewall01_A</code> in both ShreksSwamp variants. The loader evidently binds one texture into more than one slot.</li>
+  <li><strong>Forward and reverse variants are not mirrors.</strong> FoosaRocks and its reverse share one authored run entry for entry, but the two ShreksSwamp variants do not: <code>SS_Trunk_01</code> is entry 8 of the reverse and entry 18 of the forward, and the reverse draws it in a spot the forward never uses.</li>
+</ul>
+
+<h3>How the Rule Was Checked</h3>
+<p>The order cannot be read back directly, since a TRK names a slot and never a file. Two independent measurements agree on it: the rule reproduces Super Star Kartz's known-good arrangement on 527 of 549 drawn slots, and every one of the 22 differences is a slot where the alternative had to choose between same-sized textures. Separately, authored UV rectangles land on whole multiples of their texture's dimensions, and the rule maximises the number of drawn slots where both axes do - 175 of 549 in Super Star Kartz and 64 of 333 in Madagascar Kartz, against 97 and 28 for a run laid down contiguously from slot 1.</p>
+
+<h3>Not Reverse-Engineered</h3>
+<ul>
+  <li>Everything in the <code>.rdf</code> other than type-1 entries. The record dictionary resolves a property name as <code>dictionary[1945 + key]</code> and the string pool is readable, but the type codes and record grouping are not decoded.</li>
+  <li><strong>The 60-byte record array.</strong> In Madagascar's <code>main.rdf</code> each track's run is shadowed by an array of 60-byte records at a fixed stride, one per run entry, whose second word points at that entry - exactly one per run entry for all 12 tracks. It looks like per-texture material state.</li>
+  <li>The <code>.raf</code> files entirely.</li>
+</ul>
+</body>
+</html>

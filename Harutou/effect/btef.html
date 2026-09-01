@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p><strong>BTEF</strong> blobs hold visual effect data. There are 29 of them, all inside <code>eff.bin</code>. They contain no geometry and no textures, and read as scripts rather than assets.</p>
+
+<div class="note">
+  <strong>Status:</strong> Not reverse-engineered. Only the first twelve bytes are understood.
+</div>
+
+<h3>Header</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>char[4]</td><td>Magic <code>"BTEF"</code></td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td><code>0x10000000</code> in every shipped blob</td></tr>
+    <tr><td>0x08</td><td>4</td><td>u32</td><td>Entry count</td></tr>
+    <tr><td>0x0C</td><td>var</td><td>-</td><td>Not reverse-engineered</td></tr>
+  </tbody>
+</table>
+</body>
+</html>

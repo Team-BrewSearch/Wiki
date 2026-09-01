@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>One blob is one clip. Animations sit beside the <a href="../model/model.html">model blob</a> under the same archive parent and carry one track per model node, in the model's node order. Tracks also name their node.</p>
+
+<h3>Header</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Node count, matching the model's node count</td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>Clip duration in frames</td></tr>
+    <tr><td>0x08</td><td>count * 4</td><td>u32[]</td><td>Per-node track offsets, from the start of the blob</td></tr>
+  </tbody>
+</table>
+
+<p>The first track begins at <code>0x08 + node_count * 4</code>.</p>
+
+<h3>Track</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>0x20</td><td>char[0x20]</td><td>Node name, matching a model node</td></tr>
+    <tr><td>0x20</td><td>4</td><td>u32</td><td>Key count</td></tr>
+    <tr><td>0x24</td><td>68 * n</td><td>key[]</td><td>Keys</td></tr>
+  </tbody>
+</table>
+
+<p>A track is exactly <code>0x24 + 68 * key_count</code> bytes.</p>
+
+<h4>Key (68 bytes)</h4>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>0x40</td><td>f32[16]</td><td>Matrix, same layout and same space as the bind matrix</td></tr>
+    <tr><td>0x40</td><td>4</td><td>f32</td><td>Time in frames</td></tr>
+  </tbody>
+</table>
+
+<h3>Semantics</h3>
+<ul>
+  <li>Key matrices are <strong>absolute</strong>, in the same space as the bind pose, not relative to the parent. A joint's local transform at key <em>i</em> is <code>key[i] * inverse(parent_key[i])</code>, at the same key index.</li>
+  <li>Every track in a clip shares the same key times, so no resampling is needed to line the tracks up.</li>
+  <li>Keys are sparse. A 96-frame clip typically stores 25 keys, one every fourth frame.</li>
+  <li>Durations count frames at <strong>60 fps</strong>, and key times are whole frames.</li>
+</ul>
+
+<div class="note">
+  <strong>Note:</strong> A clip starts with a count followed by offsets, exactly the shape of an <a href="../archive/bin.html">archive table of contents</a>. A recursive container walk will descend into one and break it apart into individual bone tracks.
+</div>
+</body>
+</html>

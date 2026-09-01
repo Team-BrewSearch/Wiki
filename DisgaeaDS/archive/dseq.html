@@ -1,21 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Reference documentation for the file formats used in Nippon Ichi Software's Disgaea DS - DSARCFL, DSEQ, SBNK, SSEQ, STRM, SWAR, SWAV, IMY, MPD, and MPDS." />
-    <meta name="theme-color" content="#0e1a2b" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>" />
-    <title>DSEQ · Disgaea DS Wiki</title>
-    <link rel="stylesheet" href="../../style.css" />
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
 </head>
 <body>
-    <div id="content">
-        <div class="page-header">
-            <h1>DSEQ</h1>
-            <div class="page-sub">Music archive format (.msnd)</div>
-        </div>
-        <div class="page-content"><p><span class="badge">music</span> <strong>DSEQ</strong> is a custom archive that bundles Nintendo DS music data into a single <code>.msnd</code> file. It contains exactly three sequential binary chunks:</p>
+<p><strong>DSEQ</strong> is a custom archive that bundles Nintendo DS music data into a single <code>.msnd</code> file. It contains exactly three sequential binary chunks:</p>
 <ul>
   <li><strong><a href="../audio/sseq.html">SSEQ</a></strong> - sequence data</li>
   <li><strong><a href="../audio/sbnk.html">SBNK</a></strong> - sound bank</li>
@@ -45,8 +35,5 @@
 
 <h3>Chunk Order</h3>
 <p>The order is fixed: <strong>SSEQ → SBNK → SWAR</strong>. Each chunk is placed immediately after the previous one. The <code>SWAR</code> size is a 64-bit value split into two 32-bit little-endian values.</p>
-    </div>
-
-    <script src="../../script.js"></script>
 </body>
 </html>

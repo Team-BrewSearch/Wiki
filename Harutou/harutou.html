@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../script.js"></script>
+</head>
+<body>
+<p>Reference for the file formats used in <em>Suzumiya Haruhi no Chourantou</em> (also updated and most known as <em>Suzumiya Haruhi no Gekitou</em>), a Direct3D 9 title for Windows. Everything here was reverse engineered from the retail 2007 data files.</p>
+
+<h2>File Formats</h2>
+<ul data-list></ul>
+
+<h2>Conventions</h2>
+<p>These hold across every format on this wiki unless a page says otherwise.</p>
+<div class="spec-grid">
+  <div class="label">Byte order</div><div>Little-endian for all integers</div>
+  <div class="label">Floats</div><div>IEEE-754 binary32</div>
+  <div class="label">Strings</div><div>Fixed-width, null padded, not null terminated</div>
+  <div class="label">Matrices</div><div>Row-vector Direct3D convention (<code>v' = v * M</code>), translation in the last row</div>
+  <div class="label">Coordinates</div><div>Left-handed, Y up, roughly 1 unit per centimetre</div>
+  <div class="label">Padding byte</div><div><code>0xFE</code> inside archive tables, <code>0x00</code> elsewhere</div>
+</div>
+
+<p>Geometry, bind matrices and animation keys all share that one space. Converting to a right-handed target is a mirror rather than a rotation: negate one axis, conjugate every matrix by it, and reverse triangle winding.</p>
+
+<h2>Data Layout</h2>
+<p>All shipped assets live under <code>data/</code>. Every <code>.bin</code> there is the same <a href="archive/bin.html">nested table of contents</a>; the payloads below are what the leaves turn out to be.</p>
+
+<div class="file-tree">data/
+├── *.bin [BIN] - character and stage archives
+│   ├── (model blob) - node graph, meshes, embedded ringtex2 textures
+│   ├── (animation blobs) - one clip each, siblings of the model blob
+├── bgm.bin [BIN]
+│   └── (Ogg Vorbis) - background music
+├── se.bin [BIN]
+│   └── (RIFF WAVE) - sound effects
+├── voice.bin [BIN]
+│   └── (RIFF WAVE) - voice clips
+├── eff.bin [BIN]
+│   └── (BTEF) (29 blobs) - effect scripts, not reverse-engineered
+├── param.bin - gameplay tables, not reverse-engineered
+├── sce.bin - not reverse-engineered
+├── sys.bin - not reverse-engineered
+└── sel.cdt - UI data, not reverse-engineered</div>
+
+<p>Archive leaves carry no filenames, so payloads are identified by magic bytes and structure. Names in parentheses above are descriptive, not stored.</p>
+
+<p style="margin-top:0.8em;font-size:0.85rem;color:#64748b;">
+  <span class="badge">Info</span> This wiki is maintained as a reference for modders, researchers, and archivists.
+</p>
+</body>
+</html>

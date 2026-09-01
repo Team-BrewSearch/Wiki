@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>A model blob holds one character or object: a flat list of <strong>nodes</strong> that are either bones or meshes, plus any number of <a href="../texture/ringtex2.html">ringtex2</a> textures at the end. The skeleton is rebuilt from parent indices stored on the bones. <a href="../animation/anim.html">Animations</a> are separate blobs sitting beside the model under the same archive parent.</p>
+
+<h3>Header</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Version, always 1</td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>Node count</td></tr>
+    <tr><td>0x08</td><td>4</td><td>u32</td><td>Not reverse-engineered</td></tr>
+    <tr><td>0x0C</td><td>4</td><td>u32</td><td>Texture count</td></tr>
+    <tr><td>0x10</td><td>0x40</td><td>u32[]</td><td>Offsets of embedded <code>ringtex2</code> blobs</td></tr>
+    <tr><td>0x50</td><td>node_count * 4</td><td>u32[]</td><td>Node offsets, <code>0xFE</code> padded up to the first node</td></tr>
+  </tbody>
+</table>
+
+<p>All offsets are from the start of the blob, and the first node begins at <code>0x50 + node_count * 4</code>. A node's length runs to the next node offset; the last node runs to the first texture offset if the blob has textures, otherwise to the end of the blob.</p>
+
+<h3>Node Classification</h3>
+<p>Every node begins with a 0x70-byte name field. A node is a <strong>mesh</strong> when the four bytes at <code>+0x70</code> are <code>"Mate"</code>, the start of its first material name; otherwise it is a <strong>bone</strong>. No type tag is stored.</p>
+
+<h3>Bone Node</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>0x70</td><td>char[0x70]</td><td>Bone name, null padded</td></tr>
+    <tr><td>0x70</td><td>4</td><td>u32</td><td><code>related</code> - parent node index plus one</td></tr>
+    <tr><td>0x74</td><td>12</td><td>-</td><td>Not reverse-engineered</td></tr>
+    <tr><td>0x80</td><td>4</td><td>u32</td><td>Index of the mesh node this bone skins</td></tr>
+    <tr><td>0x84</td><td>4</td><td>u32</td><td>Weight count</td></tr>
+    <tr><td>0x88</td><td>0x40</td><td>f32[16]</td><td>World bind matrix</td></tr>
+    <tr><td>0xC8</td><td>0x40</td><td>f32[16]</td><td>Inverse bind matrix - unreliable, see below</td></tr>
+    <tr><td>0x108</td><td>0x48</td><td>-</td><td>Not reverse-engineered</td></tr>
+    <tr><td>0x150</td><td>8 * n</td><td>{u32, f32}[]</td><td>Skin weights: vertex index, weight</td></tr>
+  </tbody>
+</table>
+
+<p>A bone node is exactly <code>0x150 + 8 * weight_count</code> bytes, which holds for every bone of every character in the retail data.</p>
+
+<h3>Skeleton</h3>
+<p><code>parent = related - 1</code> reconstructs the whole hierarchy with no special cases, and the result is anatomically correct: <code>Lshoulder</code> under <code>Spine1</code>, <code>Lupleg</code> under <code>Hips</code>, hair chains under <code>Head</code>, skirt chains under <code>Hips</code>. The first node, <code>ABone</code>, is the root. Bones prefixed <code>DBS_</code> or <code>DBE_</code> are dynamic-bone chain start and end markers, used for hair, skirt, ribbons and collars.</p>
+
+<div class="note">
+  <strong>Note:</strong> The matrix at <code>0xC8</code> is the inverse bind matrix for ordinary bones, but a handful of weightless <code>DBS_</code> anchors store something there that is <em>not</em> the inverse of their bind matrix. Invert the bind matrix at <code>0x88</code> instead of trusting it.
+</div>
+
+<h3>Mesh Node</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>0x20</td><td>char[0x20]</td><td>Mesh name, null padded</td></tr>
+    <tr><td>0x20</td><td>0x10</td><td>-</td><td>Not reverse-engineered</td></tr>
+    <tr><td>0x30</td><td>up to 0x40</td><td>u32[]</td><td>Triangle count per material, terminated by a zero entry, at most 16 entries</td></tr>
+    <tr><td>0x70</td><td>0x44 each</td><td>record[]</td><td>Material records, one per non-zero triangle count</td></tr>
+    <tr><td>var</td><td>0x10</td><td>u32[4]</td><td>Count block: <code>nverts</code>, <code>nverts</code>, <code>ntris</code>, node index</td></tr>
+    <tr><td>+0xDC</td><td>12 * nverts</td><td>f32[3][]</td><td>Skin-space positions</td></tr>
+    <tr><td>var</td><td>12 * nverts</td><td>f32[3][]</td><td>Skin-space normals</td></tr>
+    <tr><td>var</td><td>148 * ntris</td><td>-</td><td>Draw stream</td></tr>
+  </tbody>
+</table>
+
+<p>The material count comes from the zero-terminated list at <code>0x30</code>. The u32 at <code>0x28</code> looks like a material count but does not agree with the data.</p>
+
+<p>The count block has no fixed offset, because the material array length varies. It can be found by scanning forward from <code>0x70</code> for four consecutive u32 values where the first two are equal and non-zero and the third equals the sum of the per-material triangle counts. Positions begin <code>0xDC</code> bytes after the start of that block, normals follow immediately, then the draw stream.</p>
+
+<h4>Material Record (0x44 bytes)</h4>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>0x20</td><td>char[0x20]</td><td>Material name, null padded</td></tr>
+    <tr><td>0x20</td><td>4</td><td>u32</td><td>Texture index, <code>0xFFFFFFFF</code> when untextured</td></tr>
+    <tr><td>0x24</td><td>16</td><td>f32[4]</td><td>RGBA colour</td></tr>
+    <tr><td>0x34</td><td>0x10</td><td>-</td><td>Not reverse-engineered</td></tr>
+  </tbody>
+</table>
+
+<h3>Draw Stream</h3>
+<p>A plain triangle list. There is <strong>no index buffer</strong>: each triangle carries three full 40-byte vertices followed by a 28-byte trailer, for 148 bytes per triangle.</p>
+
+<h4>Draw Vertex (40 bytes)</h4>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>12</td><td>f32[3]</td><td>Position, always exactly equal to <code>positions[vertex_id]</code></td></tr>
+    <tr><td>0x0C</td><td>12</td><td>f32[3]</td><td>Normal, unit length</td></tr>
+    <tr><td>0x18</td><td>8</td><td>f32[2]</td><td>UV, origin top-left</td></tr>
+    <tr><td>0x20</td><td>4</td><td>u8[4]</td><td>Vertex colour, BGRA. Neutral grey throughout the retail data, typically <code>0x808080FF</code></td></tr>
+    <tr><td>0x24</td><td>4</td><td>u16[2]</td><td><code>vertex_id</code>, stored twice</td></tr>
+  </tbody>
+</table>
+
+<h4>Triangle Trailer (28 bytes)</h4>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>12</td><td>f32[3]</td><td>Face normal</td></tr>
+    <tr><td>0x0C</td><td>12</td><td>f32[3]</td><td>Face normal again, identical to the first copy</td></tr>
+    <tr><td>0x18</td><td>4</td><td>-</td><td>Not reverse-engineered</td></tr>
+  </tbody>
+</table>
+
+<p><code>vertex_id</code> links the draw stream to the skinning data: bone weight lists index the skin-space position and normal arrays, not the draw vertices.</p>
+
+<p>Triangles are handed to materials in order. The first material takes the first <code>tri_counts[0]</code> faces, the second the next <code>tri_counts[1]</code>, and so on. No vertex has more than four bone influences.</p>
+</body>
+</html>

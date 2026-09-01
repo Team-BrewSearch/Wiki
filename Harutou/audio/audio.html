@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p><code>bgm.bin</code>, <code>se.bin</code> and <code>voice.bin</code> are ordinary <a href="../archive/bin.html">BIN archives</a>. Their leaves are standard audio files, so no custom decoder is needed: extract the blob, write it out, play it.</p>
+
+<h3>Payload Identification</h3>
+<table>
+  <thead><tr><th>Format</th><th>Magic</th><th>Bytes</th></tr></thead>
+  <tbody>
+    <tr><td>Ogg Vorbis</td><td><code>"OggS"</code> at offset 0</td><td><code>4F 67 67 53</code></td></tr>
+    <tr><td>RIFF WAVE</td><td><code>"RIFF"</code> at offset 0, <code>"WAVE"</code> at offset 8</td><td><code>52 49 46 46</code></td></tr>
+  </tbody>
+</table>
+
+<p>Those two are the only audio formats present in the retail data. The game ships <code>ogg.dll</code> and <code>vorbis.dll</code> and decodes Vorbis through them.</p>
+</body>
+</html>

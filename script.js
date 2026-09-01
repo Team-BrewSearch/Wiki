@@ -1,127 +1,420 @@
-(function() {
+(function () {
     'use strict';
 
-    const PAGES = [
-        { id: 'home',    label: 'Home',     file: 'DisgaeaDS/disgaeads.html' },
-        { id: 'dsarcfl', label: 'DSARCFL', file: 'DisgaeaDS/archive/dsarcfl.html', tag: 'archive' },
-        { id: 'dseq',    label: 'DSEQ',    file: 'DisgaeaDS/archive/dseq.html',    tag: 'music' },
-        { id: 'sbnk',    label: 'SBNK',    file: 'DisgaeaDS/audio/sbnk.html',      tag: 'bank' },
-        { id: 'sseq',    label: 'SSEQ',    file: 'DisgaeaDS/audio/sseq.html',      tag: 'sequence' },
-        { id: 'strm',    label: 'STRM',    file: 'DisgaeaDS/audio/strm.html',      tag: 'stream' },
-        { id: 'swar',    label: 'SWAR',    file: 'DisgaeaDS/audio/swar.html',      tag: 'wave archive' },
-        { id: 'swav',    label: 'SWAV',    file: 'DisgaeaDS/audio/swav.html',      tag: 'wave' },
-        { id: 'imy',     label: 'IMY',     file: 'DisgaeaDS/compression/imy.html', tag: 'image' },
-        { id: 'mpd',     label: 'MPD',     file: 'DisgaeaDS/map/mpd.html',         tag: 'map' },
-        { id: 'mpds',    label: 'MPDS',    file: 'DisgaeaDS/map/mpds.html',        tag: 'compressed' }
+    /* ------------------------------------------------------------------
+       Site registry.
+
+       Everything shared between pages lives here: page titles, subtitles,
+       sidebar entries, meta descriptions and the generated index lists.
+       A page's own .html file holds nothing but its content.
+
+       To add a page:
+         1. create the .html with the standard three-line skeleton
+         2. add one entry to the game's `pages` array below
+
+       To add a game: add one object to GAMES.
+       ------------------------------------------------------------------ */
+
+    const SITE = {
+        brand: 'BrewSearch Reverse Engineering Wiki',
+        sub: 'Reverse engineering documentation for games',
+        description: 'BrewSearch Reverse Engineering Wiki - reverse engineering documentation for game file formats and game internals.',
+        icon: '\u{1F4D6}',
+        themeColor: '#0e1a2b'
+    };
+
+    const GAMES = [
+        {
+            name: 'Disgaea DS',
+            dir: 'DisgaeaDS',
+            home: 'disgaeads.html',
+            sub: 'Disgaea DS reverse engineering documentation',
+            blurb: 'file formats, ROM structure, and reverse engineering notes',
+            pages: [
+                {
+                    file: 'archive/dsarcfl.html',
+                    label: 'DSARCFL',
+                    tag: 'archive',
+                    sub: 'DSARC FL archive format specification',
+                    blurb: 'archive container for audio / music / sound effects'
+                },
+                {
+                    file: 'archive/dseq.html',
+                    label: 'DSEQ',
+                    tag: 'music',
+                    sub: 'Music archive format (.msnd)',
+                    blurb: 'music archive bundling SSEQ + SBNK + SWAR'
+                },
+                {
+                    file: 'audio/sbnk.html',
+                    label: 'SBNK',
+                    tag: 'bank',
+                    sub: 'Sound bank - instrument mapping',
+                    blurb: 'sound bank mapping instruments to samples'
+                },
+                {
+                    file: 'audio/sseq.html',
+                    label: 'SSEQ',
+                    tag: 'sequence',
+                    sub: 'Sequenced instruction format for music',
+                    blurb: 'sequenced instruction format for music'
+                },
+                {
+                    file: 'audio/strm.html',
+                    label: 'STRM',
+                    tag: 'stream',
+                    sub: 'Nintendo DS streamed audio',
+                    blurb: 'Nintendo DS streamed audio (used for sound effects)'
+                },
+                {
+                    file: 'audio/swar.html',
+                    label: 'SWAR',
+                    tag: 'wave archive',
+                    sub: 'Wave archive containing SWAV files',
+                    blurb: 'wave archive containing SWAV files'
+                },
+                {
+                    file: 'audio/swav.html',
+                    label: 'SWAV',
+                    tag: 'wave',
+                    sub: 'Nintendo DS wave audio container',
+                    blurb: 'Nintendo DS wave audio container'
+                },
+                {
+                    file: 'compression/imy.html',
+                    label: 'IMY',
+                    tag: 'image',
+                    sub: 'Compressed image format',
+                    blurb: 'compressed image format'
+                },
+                {
+                    file: 'map/mpd.html',
+                    label: 'MPD',
+                    tag: 'map',
+                    sub: 'Tile-based map data',
+                    blurb: 'tile-based map data'
+                },
+                {
+                    file: 'map/mpds.html',
+                    label: 'MPDS',
+                    tag: 'compressed',
+                    sub: 'Compressed MPD map file',
+                    blurb: 'compressed MPD map file'
+                }
+            ]
+        },
+        {
+            name: 'Suzumiya Haruhi no Chourantou / Gekitou',
+            dir: 'Harutou',
+            home: 'harutou.html',
+            sub: 'Suzumiya Haruhi no Chourantou / Gekitou reverse engineering documentation',
+            blurb: 'archive container, textures, models, animation, and data layout',
+            pages: [
+                {
+                    file: 'archive/bin.html',
+                    label: 'BIN',
+                    tag: 'archive',
+                    sub: 'Nested archive container (data/*.bin)',
+                    blurb: 'recursively nested archive container used by every <code>data/*.bin</code> file'
+                },
+                {
+                    file: 'texture/ringtex2.html',
+                    label: 'RINGTEX2',
+                    tag: 'texture',
+                    sub: 'Uncompressed BGRA texture',
+                    blurb: 'uncompressed BGRA texture'
+                },
+                {
+                    file: 'model/model.html',
+                    label: 'Model',
+                    tag: 'model',
+                    sub: 'Skinned model blob',
+                    blurb: 'skinned model blob: node graph, meshes, materials, embedded textures'
+                },
+                {
+                    file: 'animation/anim.html',
+                    label: 'Animation',
+                    tag: 'animation',
+                    sub: 'Keyframed animation clip',
+                    blurb: 'one keyframed clip per blob, matched to a model by node name'
+                },
+                {
+                    file: 'audio/audio.html',
+                    label: 'Audio',
+                    tag: 'audio',
+                    sub: 'Ogg Vorbis and RIFF WAVE payloads',
+                    blurb: 'Ogg Vorbis and RIFF WAVE payloads, no custom container'
+                },
+                {
+                    file: 'effect/btef.html',
+                    label: 'BTEF',
+                    tag: 'effect',
+                    sub: 'Effect script blob',
+                    blurb: 'effect script blob, not reverse-engineered'
+                },
+                {
+                    file: 'data/tables.html',
+                    label: 'Data tables',
+                    tag: 'tables',
+                    sub: 'Gameplay tables, shader bytecode and UI data',
+                    blurb: 'gameplay tables, shader bytecode and UI data, not reverse-engineered'
+                }
+            ]
+        }
     ];
 
-    function getRelativePath(targetFile) {
-        const currentPath = window.location.pathname;
-        const currentParts = currentPath.split('/').filter(function(p) { return p.length > 0; });
-        const targetParts = targetFile.split('/').filter(function(p) { return p.length > 0; });
+    /* ------------------------------------------------------------------
+       Derived page table. `path` is always relative to the wiki root.
+       ------------------------------------------------------------------ */
 
-        const disgaeaIdx = currentParts.indexOf('DisgaeaDS');
-        let currentDepth = 0;
-        if (disgaeaIdx !== -1) {
-            currentDepth = currentParts.length - disgaeaIdx - 1;
-        } else if (currentParts[currentParts.length - 1] !== 'index.html') {
-            const lastSegment = currentParts[currentParts.length - 1] || '';
-            const looksLikeFile = lastSegment.includes('.');
-            currentDepth = (currentPath.endsWith('/') || !looksLikeFile) ? 0 : 1;
-        }
+    const HOME = {
+        path: 'index.html',
+        title: SITE.brand,
+        heading: SITE.brand,
+        sub: SITE.sub,
+        description: SITE.description,
+        list: 'games'
+    };
 
-        let up = currentDepth;
-        let down = targetParts.slice();
-        if (disgaeaIdx !== -1 && targetParts[0] === 'DisgaeaDS') {
-            up = currentDepth - 1;
-            down = targetParts.slice(1);
-        }
+    const PAGES = [HOME];
 
-        let result = '';
-        for (let i = 0; i < up; i++) {
-            result += '../';
-        }
-        for (let i = 0; i < down.length; i++) {
-            result += down[i];
-            if (i < down.length - 1) {
-                result += '/';
-            }
-        }
+    GAMES.forEach(function (game) {
+        game.path = game.dir + '/' + game.home;
 
-        return result || './';
+        PAGES.push({
+            path: game.path,
+            game: game,
+            title: game.name + ' Wiki - File Formats',
+            heading: 'Home',
+            sub: game.sub,
+            description: game.name + ' file format reference: ' +
+                game.pages.map(function (page) { return page.label; }).join(', ') + '.',
+            list: 'formats'
+        });
+
+        game.pages.forEach(function (page) {
+            page.path = game.dir + '/' + page.file;
+            page.game = game;
+            page.title = page.label + ' \u00B7 ' + game.name + ' Wiki';
+            page.heading = page.label;
+            page.description = page.label + ' - ' + stripTags(page.blurb) +
+                '. File format documentation for ' + game.name + '.';
+            PAGES.push(page);
+        });
+    });
+
+    function stripTags(html) {
+        return html.replace(/<[^>]*>/g, '');
+    }
+
+    /* ------------------------------------------------------------------
+       Location. Every generated link is absolute, resolved against the
+       directory this script was loaded from, so page depth never matters.
+       ------------------------------------------------------------------ */
+
+    const src = document.currentScript.src;
+    const ROOT = src.slice(0, src.lastIndexOf('/') + 1);
+
+    function url(path) {
+        return ROOT + path;
+    }
+
+    function currentPath() {
+        const here = location.href.split('#')[0].split('?')[0];
+        if (here.indexOf(ROOT) !== 0) return '';
+
+        const rel = decodeURIComponent(here.slice(ROOT.length));
+        return rel === '' || rel.slice(-1) === '/' ? rel + 'index.html' : rel;
+    }
+
+    const path = currentPath();
+    const page = PAGES.filter(function (entry) { return entry.path === path; })[0] || null;
+
+    /* ------------------------------------------------------------------
+       Head. Written while the head is still parsing, so the stylesheet
+       lands before first paint.
+       ------------------------------------------------------------------ */
+
+    function element(tag, attributes) {
+        const node = document.createElement(tag);
+        Object.keys(attributes).forEach(function (name) {
+            node.setAttribute(name, attributes[name]);
+        });
+        return node;
+    }
+
+    function buildHead() {
+        const favicon = 'data:image/svg+xml,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+            '<text y=".9em" font-size="90">' + SITE.icon + '</text></svg>'
+        );
+
+        document.head.appendChild(element('meta', {
+            name: 'viewport',
+            content: 'width=device-width, initial-scale=1.0'
+        }));
+        document.head.appendChild(element('meta', {
+            name: 'theme-color',
+            content: SITE.themeColor
+        }));
+        document.head.appendChild(element('meta', {
+            name: 'description',
+            content: page ? page.description : SITE.description
+        }));
+        document.head.appendChild(element('link', { rel: 'icon', href: favicon }));
+        document.head.appendChild(element('link', { rel: 'stylesheet', href: url('style.css') }));
+
+        document.title = page ? page.title : SITE.brand;
+    }
+
+    /* ------------------------------------------------------------------
+       Sidebar.
+       ------------------------------------------------------------------ */
+
+    function sidebarItem(entry, label, tag) {
+        const active = entry.path === path;
+
+        return '<a class="sidebar-item' + (active ? ' active' : '') + '"' +
+            ' href="' + url(entry.path) + '"' +
+            (active ? ' aria-current="page"' : '') + '>' +
+            '<span class="item-label">' + label + '</span>' +
+            (tag ? '<span class="item-tag">' + tag + '</span>' : '') +
+            '</a>';
     }
 
     function buildSidebar() {
-        const current = window.location.pathname.split('/').pop() || 'index.html';
-        const indexRel = getRelativePath('index.html');
+        const sections = GAMES.map(function (game) {
+            const items = [sidebarItem(game, 'Home')].concat(
+                game.pages.map(function (entry) {
+                    return sidebarItem(entry, entry.label, entry.tag);
+                })
+            );
 
-        let linksHtml = '';
-        PAGES.forEach(function(page) {
-            const relHref = getRelativePath(page.file);
-            const isActive = current === page.file.split('/').pop();
-            const activeClass = isActive ? ' active' : '';
-            const ariaCurrent = isActive ? ' aria-current="page"' : '';
-            const tagHtml = page.tag ? '<span class="item-tag">' + page.tag + '</span>' : '';
-            linksHtml += '<a class="sidebar-item' + activeClass + '" href="' + relHref + '"' + ariaCurrent + '><span class="item-label">' + page.label + '</span>' + tagHtml + '</a>';
+            return '<div class="sidebar-section">' +
+                '<div class="sidebar-section-title">' + game.name + '</div>' +
+                items.join('') +
+                '</div>';
         });
 
         return '<a class="skip-link" href="#main">Skip to content</a>' +
             '<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation">' +
-            '<span class="menu-icon">☰</span><span class="close-icon">✕</span></button>' +
+            '<span class="menu-icon">\u2630</span><span class="close-icon">\u2715</span></button>' +
             '<div class="sidebar-overlay" id="sidebarOverlay"></div>' +
             '<nav class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">' +
-            '<div class="sidebar-brand">' +
-            '<a href="' + indexRel + '">' +
-            '<span class="brand-icon">📖</span>' +
-            '<span>BrewSearch Reverse Engineering Wiki</span>' +
+            '<div class="sidebar-brand"><a href="' + url(HOME.path) + '">' +
+            '<span class="brand-icon">' + SITE.icon + '</span>' +
+            '<span>' + SITE.brand + '</span>' +
             '</a></div>' +
-            '<div class="sidebar-nav">' +
-            '<div class="sidebar-section">' +
-            '<div class="sidebar-section-title">Disgaea DS</div>' + linksHtml +
-            '</div></div></nav>';
+            '<div class="sidebar-nav">' + sections.join('') + '</div>' +
+            '</nav>';
     }
 
-    function injectLayout() {
-        const content = document.getElementById('content');
-        if (!content) return;
+    /* ------------------------------------------------------------------
+       Generated index lists. A page opts in with <ul data-list></ul>;
+       which list it gets follows from the page itself.
+       ------------------------------------------------------------------ */
 
-        document.body.insertAdjacentHTML('afterbegin', buildSidebar());
+    function listItems() {
+        if (!page) return [];
+
+        if (page.list === 'games') {
+            return GAMES.map(function (game) {
+                return '<a href="' + url(game.path) + '">' + game.name + '</a> - ' + game.blurb;
+            });
+        }
+
+        if (page.list === 'formats') {
+            return page.game.pages.map(function (entry) {
+                return '<a href="' + url(entry.path) + '">' + entry.label + '</a> - ' + entry.blurb;
+            });
+        }
+
+        return [];
+    }
+
+    function fillLists() {
+        const items = listItems();
+
+        [].forEach.call(document.querySelectorAll('[data-list]'), function (node) {
+            node.innerHTML = items.map(function (item) {
+                return '<li>' + item + '</li>';
+            }).join('');
+        });
+    }
+
+    /* ------------------------------------------------------------------
+       Page shell. The body of a page file is its content and nothing
+       else; the header, the badge and the wrappers are added here.
+       ------------------------------------------------------------------ */
+
+    function buildPage() {
+        const content = document.createElement('div');
+        content.className = 'page-content';
+
+        while (document.body.firstChild) {
+            content.appendChild(document.body.firstChild);
+        }
+
+        if (page && page.tag) {
+            const first = content.querySelector('p');
+            if (first) {
+                first.insertAdjacentHTML('afterbegin',
+                    '<span class="badge">' + page.tag + '</span> ');
+            }
+        }
+
+        const header = document.createElement('div');
+        header.className = 'page-header';
+        header.innerHTML =
+            '<h1>' + (page ? page.heading : document.title) + '</h1>' +
+            (page && page.sub ? '<div class="page-sub">' + page.sub + '</div>' : '');
+
+        const wrapper = document.createElement('div');
+        wrapper.id = 'content';
+        wrapper.appendChild(header);
+        wrapper.appendChild(content);
 
         const main = document.createElement('main');
         main.className = 'main';
         main.id = 'main';
         main.setAttribute('role', 'main');
         main.setAttribute('tabindex', '-1');
-        content.parentNode.insertBefore(main, content);
-        main.appendChild(content);
+        main.appendChild(wrapper);
+
+        document.body.appendChild(main);
+        document.body.insertAdjacentHTML('afterbegin', buildSidebar());
+
+        fillLists();
     }
 
-    function toggleSidebar() {
-        document.body.classList.toggle('sidebar-open');
-    }
+    /* ------------------------------------------------------------------
+       Sidebar behaviour (mobile).
+       ------------------------------------------------------------------ */
 
     function closeSidebar() {
         document.body.classList.remove('sidebar-open');
     }
 
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('#sidebarToggle')) {
+            document.body.classList.toggle('sidebar-open');
+        }
+        if (event.target.id === 'sidebarOverlay') {
+            closeSidebar();
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeSidebar();
+        }
+    });
+
+    buildHead();
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', injectLayout);
+        document.addEventListener('DOMContentLoaded', buildPage);
     } else {
-        injectLayout();
+        buildPage();
     }
-
-    document.addEventListener('click', function(e) {
-        if (e.target.id === 'sidebarToggle' || e.target.closest('#sidebarToggle')) {
-            toggleSidebar();
-        }
-        if (e.target.id === 'sidebarOverlay') {
-            closeSidebar();
-        }
-    });
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeSidebar();
-        }
-    });
 })();

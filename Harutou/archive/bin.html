@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>Every <code>data/*.bin</code> file is a <strong>recursively nested table of contents</strong>. There is no magic number, no version field and no filenames: a table is a count, a list of offsets, and the payloads they point at. Children are often tables themselves, to varying depths.</p>
+
+<h3>File Layout</h3>
+<pre>+----------------------+   &lt;-- table base
+| Count (4 bytes)      |       Number of child slots (uint32 LE)
++----------------------+   &lt;-- base + 4
+| Offset Table         |       count * 4 bytes, relative to the table base
++----------------------+
+| 0xFE Padding         |       up to the first child
++----------------------+
+| Child Payloads ...   |       each aligned to 32 bytes
++----------------------+   &lt;-- end of table</pre>
+
+<h3>Table</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Child slot count</td></tr>
+    <tr><td>0x04</td><td>count * 4</td><td>u32[count]</td><td>Child offsets, relative to <em>this table's own base</em></td></tr>
+    <tr><td>var</td><td>var</td><td>u8[]</td><td><code>0xFE</code> padding up to the first child</td></tr>
+    <tr><td>var</td><td>var</td><td>-</td><td>Child payloads, each aligned to a 32-byte boundary</td></tr>
+  </tbody>
+</table>
+
+<p>The first offset is always <code>&gt;= 4 + count * 4</code>, since it has to clear the header.</p>
+
+<h3>Slot Semantics</h3>
+<ul>
+  <li>Offsets are relative to the table that lists them, not to the start of the file.</li>
+  <li>Offsets are <strong>not sorted</strong>.</li>
+  <li>Offsets <strong>may repeat</strong>. Two slots holding the same offset are aliases of one shared payload, not two copies.</li>
+  <li>An offset of <code>0</code> is an empty slot.</li>
+  <li>A child's length runs to the next larger <em>distinct</em> offset. The last child runs to the end of the parent.</li>
+</ul>
+
+<h3>Payload Identification</h3>
+<p>Leaves carry no names or type tags, so payloads are identified by magic bytes and structure: <a href="../texture/ringtex2.html">ringtex2</a>, <a href="../model/model.html">model</a>, <a href="../animation/anim.html">animation</a>, <a href="../audio/audio.html">Ogg and RIFF</a>.</p>
+
+<div class="note">
+  <strong>Note:</strong> An <a href="../animation/anim.html">animation</a> blob starts with a node count followed by per-node offsets, which is structurally indistinguishable from a table of contents. A recursive walk that does not recognise it first will descend into the clip and break it apart into individual bone tracks.
+</div>
+
+<h3>Unidentified Payloads</h3>
+<ul>
+  <li><strong><code>0D 0A</code> blobs</strong> - 40 to 96 byte blocks of <code>0D 0A</code> followed by zeros, one at the end of most parent nodes. They hold no asset data and behave as end markers.</li>
+</ul>
+</body>
+</html>

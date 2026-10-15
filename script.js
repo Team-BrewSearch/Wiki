@@ -162,11 +162,11 @@
             ]
         },
         {
-            name: 'Madagascar Kartz / Super Star Kartz',
+            name: 'Virtuos DS Racing Game Engine',
             dir: 'Kartz',
             home: 'kartz.html',
-            sub: 'Madagascar Kartz and DreamWorks Super Star Kartz reverse engineering documentation',
-            blurb: 'archive triple, textures, track geometry, display lists, and resource databases',
+            sub: 'Virtuos DS Racing Game Engine reverse engineering documentation',
+            blurb: 'archive triple, textures, track geometry, display lists, and resource databases for Madagascar Kartz, DreamWorks Super Star Kartz, Hot Wheels: Battle Force 5, Pimp My Ride: Street Racing and Monster Jam: Path of Destruction',
             pages: [
                 {
                     file: 'archive/gda.html',
@@ -211,11 +211,60 @@
                     blurb: 'the pointer offsets an RDF needs patched at load time'
                 },
                 {
+                    file: 'track/col.html',
+                    label: 'COL',
+                    tag: 'collision',
+                    sub: 'Collision surface layout and sector records',
+                    blurb: 'the cross-section chain, sector records and collision import rules'
+                },
+                {
+                    file: 'track/bpvs.html',
+                    label: 'BPVS',
+                    tag: 'visibility',
+                    sub: 'Chunk visibility run lists',
+                    blurb: 'the per-sector run-length lists that say which chunks to draw'
+                },
+                {
+                    file: 'data/zon.html',
+                    label: 'ZON',
+                    tag: 'scenery',
+                    sub: 'Scenery bundle layout',
+                    blurb: 'the model bundle of track-format chunks and its per-model records'
+                },
+                {
+                    file: 'data/car.html',
+                    label: 'CAR',
+                    tag: 'vehicle',
+                    sub: 'Vehicle and prop model layout',
+                    blurb: 'the rigid model, its chunk table and its wheel block'
+                },
+                {
+                    file: 'data/amd.html',
+                    label: 'AMD',
+                    tag: 'character',
+                    sub: 'Character model layout and skinning',
+                    blurb: 'the skinned model, its bone table and its display-list skin'
+                },
+                {
+                    file: 'data/ske.html',
+                    label: 'SKE',
+                    tag: 'skeleton',
+                    sub: 'Skeleton layout',
+                    blurb: 'the parented bones and their rest transforms'
+                },
+                {
+                    file: 'data/ani.html',
+                    label: 'ANI',
+                    tag: 'animation',
+                    sub: 'Animation clip layout',
+                    blurb: 'the per-bone matrix tracks and frame poses'
+                },
+                {
                     file: 'data/other.html',
-                    label: 'Other files',
-                    tag: 'undecoded',
-                    sub: 'COL, BPVS and ZON',
-                    blurb: 'collision, visibility and zone bundles, not reverse-engineered'
+                    label: 'Decoded assets',
+                    tag: 'assets',
+                    sub: 'Spec overview, verification and known limits',
+                    blurb: 'spec index, round-trip totals, editing rules and known limits'
                 }
             ]
         }

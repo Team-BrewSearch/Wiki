@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>A <code>.zon</code> is a bundle of scenery models. Each model is a display list in exactly the format a <a href="../track/trk.html">TRK chunk</a> uses. The layout below is the two-Kartz shape.</p>
+
+<h3>File Layout</h3>
+<pre>+0x00  u32    model count
++0x04  u32    12, the size of this header
++0x08  u32    payload size, from +0x0C
++0x0C  u32[]  one absolute offset per model
+model chunks, in table order
+u32[3] per model, one 12-byte record each</pre>
+
+<p>Parser checks are exact: the model count is one or more, the header is 12 or 16 bytes, a wide header's spare word at <code>+0x0C</code> is zero, the stored payload length is at least four and no longer than the file minus 12, the offset table fits, each model offset lands after the table, and each offset holds a chunk. The trailer starts at the end of the last chunk, not at a stored offset.</p>
+
+<p>The plugin reads the chunk shape off the chunk, so scenery chunks follow the same narrow and wide shapes a <a href="../track/trk.html">track chunk</a> uses. Later model offsets can leave gaps the parser allows rather than requiring back-to-back chunks.</p>
+
+<p>A chunk is a <code>.trk</code> chunk: a 24-byte header for the narrow shape, whose <code>+0x04</code> is the prefix words plus the display list size and whose texture count is at <code>+0x10</code>, then that many texture references, then the display list. The wide shape's texture count is at <code>+0x64</code> and its references are 16 bytes. The same interpreter runs over both, so <code>.zon</code> models draw, export to glTF and re-import through the same path a track does, textures included.</p>
+
+<p>A chunk names its texture by slot, and the slot is resolved through the resource databases exactly as a track's is: the record that names the model carries a list of texture slots, and a slot's id sits either directly under <code>name</code> or one level down, under a <code>texture</code> list whose records hold the frames of an animated texture. A record can also name several models at once, and every skybox in a game shares one. Then the two lists run in parallel: the model at position <em>i</em> takes the texture at position <em>i</em>, one each, rather than all of them sharing the whole table. 119 models across the two games are paired that way, and the pairings agree with the names throughout, from <code>SKY_ToothlessCove.zon</code> to <code>SKY_ToothlessCove.5tx</code> down to <code>mudblock.zon</code> and <code>mudblock.5tx</code>. The display list is no help here: its <code>TEXIMAGE_PARAM</code> is a constant <code>0x40000000</code> with no size, format or address, all of which the game fills in when it binds the texture. Models that no resource database names fall back to the texture beside them, scored by how much of the name they share.</p>
+
+<p>The block after the chunks is twelve bytes per model, not a fixed trailer: <code>models/garage/garage.zon</code> carries 156 bytes for its thirteen models, and all 116 bundles match the rule exactly. Its contents are carried through untouched. Positions stay inside the ±8 range a <code>VTX_16</code> command can hold, so the models are authored small and placed by the code that loads them. Texture coordinates are in texels and are divided by the resolved texture's size to normalise them; all 116 bundles resolve a texture, and every one but the tiled water planes lands inside a span of eight.</p>
+
+<h3>Header Variants</h3>
+<p>The <code>.zon</code> header is 12 bytes or 16, the later one carrying a spare zero word. Chunk headers inside a bundle follow the narrow or wide shape the home page lists for track chunks.</p>
+
+<h3>Verification</h3>
+<ul>
+  <li>Every shipped bundle, 116 in the two Kartz games, keeps the twelve-bytes-per-model rule for the block after the chunks.</li>
+  <li>Across all five games every one of the 588 <code>.zon</code> files reads, draws and re-serialises to the bytes it was read from.</li>
+  <li>glTF export and re-import unedited reproduces a scenery model byte for byte in 576 of 588 files. The rest are listed as known limits.</li>
+</ul>
+</body>
+</html>

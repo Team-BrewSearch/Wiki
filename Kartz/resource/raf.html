@@ -5,7 +5,7 @@
 <script src="../../script.js"></script>
 </head>
 <body>
-<p>A <code>.raf</code> is the pointer-fixup table for the <a href="rdf.html">RDF</a> of the same name. It carries no content of its own: every entry is the byte offset of a word inside the paired <code>.rdf</code> that holds a file offset and has to become a real address when the database is loaded. Both games ship one <code>.raf</code> beside every <code>.rdf</code>, and neither file is usable without the other.</p>
+<p>A <code>.raf</code> is the pointer-fixup table for the <a href="rdf.html">RDF</a> of the same name. It carries no content of its own: every entry is the byte offset of a word inside the paired <code>.rdf</code> that holds a file offset and has to become a real address when the database is loaded. Every game ships one <code>.raf</code> beside every <code>.rdf</code>, and neither file is usable without the other.</p>
 
 <h3>File Structure</h3>
 <table>
@@ -23,6 +23,10 @@
 
 <pre>for (u32 o : raf.offsets)
     *(u32*)(rdf + o) += (u32)rdf;</pre>
+
+<div class="note">
+  <strong>Plugin behaviour:</strong> The plugin parses the <code>.rdf</code> records directly and never reads the paired <code>.raf</code>. The fixup table is engine load behaviour, not a step in reading or writing the record tree.
+</div>
 
 <h3>Rules</h3>
 <ul>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>A <code>.car</code> is a rigid model built from the same chunks a <a href="../track/trk.html">track</a> uses, with a tail describing where its wheels sit. The layout below is the two-Kartz shape. The chunk table field moves from <code>+0x10</code> to <code>+0x14</code> in the later games, which the plugin detects per file.</p>
+
+<h3>File Layout</h3>
+<pre>+0x00  u32    chunk count
++0x04  u32    0 or 3
++0x08  i32    a height, 20.12, matching the y of every point in the wheel block
++0x0C  u32    4
++0x10  u32    0x24, the offset of the chunk table below
++0x14  u32    start of the tail, which is also the end of the last chunk
++0x18  u32    a 12-byte block inside the tail
++0x1C  u32    the same offset again in all but three of the models
++0x20  u32    the wheel block: four points, 20.12, always the last 48 bytes of the file
+u32[]         one absolute offset per chunk
+chunks, in the .trk chunk format, in table order
+tail</pre>
+
+<p>The plugin detects the chunk table by reading <code>+0x10</code>, falling back to <code>+0x14</code>, and accepting the table whose offsets fit the file and whose chunks parse. The tail is then read from the parsed chunks, not from a header word: it starts at the end of the last chunk. In the two-Kartz layout that is the value held at <code>+0x14</code>; in the later layout the table field itself is at <code>+0x14</code>.</p>
+
+<p>The parser also rejects a chunk table that starts before <code>0x20</code> or whose table runs past the file, requires each chunk offset to land at or after the current chunk end, and rejects a chunk whose display list size is zero, not a multiple of four, or whose texture count is above 4096. A wheel block is present only when the last 48 bytes sit after the last chunk.</p>
+
+<p>Each chunk is a <code>.trk</code> chunk, so the same interpreter draws it and the glTF export and import path works on it unchanged. Twenty-two of the twenty-seven two-Kartz models carry one chunk and a 72-byte tail; the rest carry two chunks or a longer middle block.</p>
+
+<h3>Wheel Block</h3>
+<p>The last 48 bytes hold four points, four wheel positions, each an x, y and z value in 20.12. The height stored at <code>+0x08</code> matches the y of every wheel point. Wheel values are editable in the plugin as decimal numbers.</p>
+
+<h3>Replacement</h3>
+<p>An import converts glTF through the track path, rebuilds every chunk, writes the chunk table and copies the tail. Writes keep the tail's own bytes and shift header fields that point into the tail by the tail's movement. A chunk with no triangles is copied byte for byte from the template. When the converted geometry matches the geometry already in the file, the plugin leaves the file bytes untouched instead of rebuilding it.</p>
+
+<h3>Verification</h3>
+<ul>
+  <li>Every <code>.car</code> the plugin reads parses and re-serialises to the bytes it was read from: 103 files across the five games.</li>
+  <li>All 103 survive glTF export and re-import unedited.</li>
+  <li>All 27 two-Kartz models come back byte for byte through glTF.</li>
+</ul>
+</body>
+</html>

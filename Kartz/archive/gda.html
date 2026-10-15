@@ -5,7 +5,7 @@
 <script src="../../script.js"></script>
 </head>
 <body>
-<p>Three files travel together and are useless apart: <code>DWK.gda</code> holds the raw bytes, <code>DWK.gdf</code> the paths, <code>DWK.gdt</code> the byte ranges. Madagascar Kartz ships the same triple as <code>MAD.gda</code>, <code>MAD.gdf</code> and <code>MAD.gdt</code>. Entries are addressed by index: entry <em>n</em> takes its path from the GDF and its byte range from the GDT.</p>
+<p>Every Virtuos DS racing game stores its assets in three files that travel together and are useless apart. The archive stem varies by game: <code>DWK.gda</code> holds the raw bytes, <code>DWK.gdf</code> the paths and <code>DWK.gdt</code> the byte ranges for Super Star Kartz, and Madagascar Kartz ships the same triple as <code>MAD.gda</code>, <code>MAD.gdf</code> and <code>MAD.gdt</code>. Entries are addressed by index: entry <em>n</em> takes its path from the GDF and its byte range from the GDT.</p>
 
 <h3>GDF - path table</h3>
 <table>
@@ -24,18 +24,22 @@
   <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
     <tr><td>0x00</td><td>4</td><td>u32</td><td>Always 0</td></tr>
-    <tr><td>0x04</td><td>4</td><td>u32</td><td>Entry count, matching the GDF's</td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>Entry count; retail files match the GDF count</td></tr>
     <tr><td>0x08</td><td>count * 8</td><td>{u32 offset, u32 size}[]</td><td>Byte range of each entry inside the GDA</td></tr>
   </tbody>
 </table>
 
 <p>An entry is present only when <code>size &gt; 0</code> and <code>offset + size</code> fits inside the GDA. Anything else is an empty slot.</p>
 
+<p>The plugin takes the effective count as the smallest of the GDF path count, the GDT's declared count, and the number of entries the GDT's own bytes can hold. It then keeps an entry for every index below that count, empty or not.</p>
+
 <h3>GDA - data</h3>
-<p>One contiguous region per GDT entry, with no header of its own. Every entry ends padded with zero bytes up to the next 32-byte boundary.</p>
+<p>One contiguous region per GDT entry, with no header of its own. The writer pads each non-empty entry with zero bytes up to the archive's detected alignment boundary. The plugin detects the alignment from the entry offsets as the largest power of two from 4096 down to 4 that every non-zero offset shares, falling back to 32 when every offset is zero and to 4 when none fits. Both Kartz archives use 32 bytes.</p>
 
 <h3>Shared Content</h3>
-<p>The shipped archive points multiple GDT entries at the <strong>same</strong> GDA offset whenever their content is byte-identical: a driver's <code>player</code> and <code>ai</code> texture variants share one texture, two tracks' skyboxes share one zone mesh.</p>
+<p>The two Kartz archives point multiple GDT entries at the <strong>same</strong> GDA offset whenever their content is byte-identical: a driver's <code>player</code> and <code>ai</code> texture variants share one texture, two tracks' skyboxes share one zone mesh.</p>
+
+<p>The plugin writes this sharing back the same way. Saving rebuilds the <code>.gda</code> and the <code>.gdt</code>; the <code>.gdf</code> name table is read only. The writer hashes each entry's bytes, points every later byte-identical entry at the first copy, pads each non-empty entry to the detected alignment, and then rereads the rebuilt triple and checks every entry's bytes match what it intended to write.</p>
 
 <table>
   <thead><tr><th>Archive</th><th>Entries</th><th>Distinct offsets</th><th>Duplicate references</th><th>Bytes saved</th></tr></thead>

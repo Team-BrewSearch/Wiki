@@ -5,7 +5,7 @@
 <script src="../../script.js"></script>
 </head>
 <body>
-<p>An <code>.rdf</code> is a serialised object tree: records of named, typed properties. It names the files a level loads, the slot each of its textures occupies, and every tunable the level author set. A <a href="../track/trk.html">TRK</a>'s texture index indexes a table this file holds outright.</p>
+<p>An <code>.rdf</code> is a serialised object tree: records of named, typed properties. It names the files a level loads, the slot each of its textures occupies, and every tunable the level author set. A <a href="../track/trk.html">TRK</a>'s texture index indexes a table this file holds outright. Every Virtuos DS racing game uses this record tree. The file split described next is the difference between the two Kartz games.</p>
 
 <h3>Files</h3>
 <table>
@@ -16,7 +16,7 @@
   </tbody>
 </table>
 
-<p>Each is paired with a <a href="raf.html">RAF</a> holding its pointer-fixup table. This split is the only substantive difference between the two games.</p>
+<p>Each is paired with a <a href="raf.html">RAF</a> holding its pointer-fixup table. This split is the only substantive difference between the two Kartz games.</p>
 
 <h3>File Layout</h3>
 <pre>+----------------------+   &lt;-- offset 0
@@ -32,7 +32,18 @@
 | String pool          |       null-terminated ASCII
 +----------------------+   &lt;-- EOF</pre>
 
-<p>Both header words are relocated, so they appear in the RAF as offsets 0 and 4.</p>
+<p>Both header words are relocated, so they appear in the RAF as offsets 0 and 4. Retail files store the root record at <code>0x08</code>; the reader accepts whatever the header points at and fails if that offset does not hold a record.</p>
+
+<p>When the plugin builds a texture index, it reads every <code>.rdf</code> beside the archive in path order, ignoring read failures. If no database parses, the index is null and track textures fall back to the sibling-texture search on the <a href="../texture/5tx.html">5TX</a> path.</p>
+
+<h3>Reader Checks</h3>
+<ul>
+  <li>The file has to carry at least the eight-byte header.</li>
+  <li>The dictionary has to be inside the file, the string-offset array has to fit, and every string offset has to point inside the file. A name is capped at 128 bytes.</li>
+  <li>A record is re-read once per offset, so a tree that points at the same record twice sees the same object.</li>
+  <li>Nested records and record arrays may go 64 levels deep from the root.</li>
+  <li>Any type name outside the type table below is carried as a raw 32-bit slot.</li>
+</ul>
 
 <h3>Record</h3>
 <table>
@@ -48,15 +59,15 @@
 <table>
   <thead><tr><th>Bits</th><th>Meaning</th></tr></thead>
   <tbody>
-    <tr><td>0-15</td><td>Type name index</td></tr>
-    <tr><td>16-31</td><td>Property name index</td></tr>
+    <tr><td>Bits 16-31</td><td>Property name index</td></tr>
+    <tr><td>Bits 0-15</td><td>Type name index</td></tr>
   </tbody>
 </table>
 
 <p>Both index the same dictionary, so a property reads out as plain text - <code>startdist</code> of type <code>fx32</code>, <code>model</code> of type <code>fileidlist</code>. Type names are stored in the file like any other name; nothing is hardcoded except how each named type encodes its value.</p>
 
 <h3>Types</h3>
-<p>An <em>inline</em> type stores its value in the 32-bit slot. A <em>referenced</em> type stores a file offset there, and that slot appears in the RAF. The distinction is exact, so the type name alone tells a reader whether to dereference.</p>
+<p>The engine's shared reader interprets these type names specially: <code>resource</code> is a nested record offset, <code>resource[]</code> is an array of record offsets, <code>fileid</code> is one archive id, <code>fileid[]</code> is an array of archive ids, and <code>fileidlist</code> is a pointer to that array. Every other type stores a raw 32-bit value in the slot. The table below records the engine's wider type system; the shared reader leaves unknown types untouched for the code that needs them.</p>
 
 <table>
   <thead><tr><th>Type</th><th>Storage</th><th>Encoding</th></tr></thead>
@@ -93,11 +104,13 @@
 <p>Both arrays are <code>count</code> words long and parallel: entry <em>i</em> pairs key <em>i</em> with the string at offset <em>i</em>. They are contiguous, the string array starting immediately after the key array. Keys are stored in ascending order, so lookup is a binary search. Entry 0 is the empty string with key 0. Dictionaries run from 54 names to 1942.</p>
 
 <div class="note">
-  <strong>Not reverse-engineered:</strong> how a key is derived from its name. It is a pure function of the string - a name carries the same key in every file - and the empty string hashes to 0 while a single character hashes to its own byte value. It is not CRC-32 under any common polynomial, not Jenkins one-at-a-time, and not a multiply-accumulate chain in either direction. Reading and rewriting a database does not need it: existing keys carry through unchanged, and only a brand-new name would require computing one.
+  <strong>Not reverse-engineered:</strong> how a key is derived from its name. It is a pure function of the string - a name carries the same key in every file - and the empty string hashes to 0 while a single character hashes to its own byte value. It is not CRC-32 under any common polynomial, not Jenkins one-at-a-time, and not a multiply-accumulate chain in either direction. The reader does not use the key array or recompute keys: it reads strings by their string-offset array, and existing names carry through unchanged. Only a brand-new name would require computing a key.
 </div>
 
 <h3>The Texture Slot Table</h3>
-<p>A track's textures live at <code>track.textures.texture</code>, a <code>resource[]</code> whose <strong>array index is the slot number a TRK names</strong>. The table is written out in full, empty slots included.</p>
+<p>A track's textures live in the track record's <code>textures</code> property. In the engine-level layout that property holds a record with a <code>texture</code> array. The plugin accepts either shape directly from the shared record tree: <code>textures</code> as a <code>resource[]</code>, or a record carrying <code>texture</code> as that array. The array index is the slot number a <a href="../track/trk.html">TRK</a> stores, and the table is written out in full, empty slots included.</p>
+
+<p>The plugin builds the slot index from records that carry a <code>model</code> id list and a <code>textures</code> table. A slot's archive ids come from the slot record's <code>name</code> list directly, or from each frame's own <code>name</code> under nested <code>texture</code> records, to a depth of three. A record that names several models gets per-model tables when its model count matches its table length, and every model in a matching list keeps the parallel pairing.</p>
 
 <p>Each element is a seven-property record:</p>
 
@@ -114,9 +127,9 @@
   </tbody>
 </table>
 
-<p>Three rules hold on all 28 tracks in the two games:</p>
+<p>Three slot rules are measured on all 28 tracks of the two Kartz games:</p>
 <ul>
-  <li>Slot 0 is always empty, which is why a TRK's texture index is never 0.</li>
+  <li>Slot 0 is always empty, which is why a TRK's stored texture index is never 0.</li>
   <li>No track draws a slot whose <code>name</code> list is empty, and every table is longer than the track's highest drawn slot - tables carry entries the geometry never references.</li>
   <li>The table is not a permutation. The same <code>fileid</code> can appear in several slots: Madagascar's FoosaRocks binds <code>FR_fast_rock</code> to slots 3 and 4, <code>FR_grass_tile</code> to 5 and 8, <code>FR_fast_mud</code> to 1 and 7.</li>
 </ul>

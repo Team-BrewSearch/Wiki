@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>An <code>.amd</code> is a skinned character model: one chunk, and a table naming the bones its vertices hang from. It has two shapes. The two Kartz games use a single chunk and name a bone per vertex in the display list. Hot Wheels uses parts, each an eight-byte record naming one bone and pointing at its own chunk. The layout below describes the single-chunk shape.</p>
+
+<h3>Single-Chunk Layout</h3>
+<pre>+0x00  u32    1
++0x04  u32    8
++0x08  u32    12
++0x0C  u32    bone count
++0x10  u32    0x1C, the offset of the pointer table below
++0x14  u32    a 12-byte block of three signed 20.12 values, near the model but not derived from it
++0x18  u32    the chunk
+u32[]         one pointer per bone, each to the u32 that follows
+u32[]         one bone index per pointer, into the paired .ske
+i32[3]        the block at +0x14
+chunk, in the .trk chunk format, running to the end of the file</pre>
+
+<p>The parser checks the layout exactly: bone count is at least one and at most 1024, the table starts at <code>+0x1C</code>, the pointer array ends immediately before the value array, the value array ends immediately before the 12-byte block, and the block ends immediately before the chunk. The chunk's display list size has to be non-zero and a multiple of four, the texture count has to be at most 4096, and the chunk has to end exactly at the file length.</p>
+
+<p>The three values at <code>+0x14</code> differ from model to model. There are 43 distinct triples across the 49 two-Kartz files, and they sit between -0.02 and 0.23 in 20.12, which is neither the model's extent nor any translation its skeleton carries. The plugin copies them through unchanged when it writes a model back, the way it leaves any field it cannot rebuild from the data.</p>
+
+<h3>Parts Layout</h3>
+<p>A part model has a 24-byte <code>0x18</code> header. The part count is at <code>+0x0C</code>, the part table at <code>+0x10</code>, and the record block at <code>+0x14</code>. The table has one offset per part. Records follow the table, twelve bytes each. Then each part record is an eight-byte chunk base: the bone the part hangs from, then the offset of its chunk at the next eight bytes. Every chunk runs in the <code>.trk</code> chunk format.</p>
+
+<h3>Skeleton and Skin</h3>
+<p>The skin lives in the display list. A <code>MTX_RESTORE</code> command selects the matrix stack slot the next vertices are transformed by, and the slot is the bone index plus ten. Every one of the 7,480 restores across the two games names a bone the file's own table lists, and every bone in that table is used. Vertices are stored in their bone's space, so a model drawn without posing collapses on the origin; the plugin multiplies each vertex by its bone's rest transform to place it, and hands glTF the joint and weight per vertex so the skin survives the trip to a modelling package.</p>
+
+<p>A skeleton stands in the game's own frame, in which the character's up axis is the third one. Both the viewport and glTF put up on the second axis, so the plugin turns every rest transform a quarter turn about x on the way out and the same quarter turn back on the way in. The turn is named once in the skeleton parser and every consumer goes through it.</p>
+
+<p>A triangle may span bones, and 66 of the 160 triangles of one Alex model do, so the plugin names the bone at vertex granularity rather than once per triangle.</p>
+
+<h3>Replacement</h3>
+<p>An import needs a skeleton beside the model. Single-chunk writes rebuild the bone table and the chunk, carrying the 12-byte block through. Part writes rebuild every part inside the chunk header it came with, so a part model keeps the parts it came with and a triangle must hang from a bone the model already draws. When the converted geometry is within 4/4096 of the stored positions and UVs, and the vertex slots and indices match exactly, the writer returns the template bytes unchanged.</p>
+
+<h3>Verification</h3>
+<ul>
+  <li>All 64 <code>.amd</code> files across the five games read, draw and export.</li>
+  <li>All 64 round trip through the host glTF codec. In the two-Kartz set, 43 of the 49 come back byte for byte and the other six differ by at most 0.0014 units, which is the 1/4096 grid rounding through the rest-pose transform on the deepest bone chains.</li>
+  <li>Every one of the 63 parts across Hot Wheels' 15 models names a bone its skeleton lists.</li>
+  <li>The twelve-byte block per part remains unread and is copied through unchanged.</li>
+</ul>
+</body>
+</html>

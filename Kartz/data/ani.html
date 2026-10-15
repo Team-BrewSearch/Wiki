@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>An <code>.ani</code> is one animation clip. Each animated bone has one track, and each frame is a pose rather than a step. The file has a narrow header and a wide header, and the plugin detects which one a file uses.</p>
+
+<h3>Narrow Header Layout</h3>
+<pre>+0x00  u16    bone count, matching the skeleton of the same character
++0x02  u16    frame count
++0x04  u32    8, the size of this header
+u32[]         one offset per bone, zero for a bone the clip does not move
+tracks, one per non-zero offset: a row-major 4x4 matrix in 20.12 per frame, 64 bytes each</pre>
+
+<h3>Wide Header Layout</h3>
+<pre>+0x00  u32    bone count
++0x04  u32    frame count
++0x08  u32    20, the size of this header
++0x0C  u32    the end of the last track
++0x10  u32    0
+u32[]         one offset per bone, zero for a bone the clip does not move
+tracks, one per non-zero offset: a row-major 4x4 matrix in 20.12 per frame, 64 bytes each
+zero padding, twelve bytes for each frame gap between the last track and the file end</pre>
+
+<p>The parser checks the exact sizes. Bone count and frame count have to be non-zero, with bones at most 1024 and frames at most 4096. A non-zero bone table offset has to land in the track region, on a frame-block boundary, and with room for the whole block. Every stored frame has to keep the fourth column <code>(0, 0, 0, 4096)</code>. At least one bone has to carry a track, the last track has to end where the header states, and the wide header's trailing gap bytes have to be zero.</p>
+
+<p>The file is exactly the header, the table and one <code>frames * 64</code> block per animated bone, plus the wide-header padding. 333 of the 333 two-Kartz files match that to the byte. The 20,444 matrices across both games all carry the fourth column and unit-length rotation rows, no two bones share a track, and every file that pairs with a skeleton by name agrees with it on the bone count, 325 of 325.</p>
+
+<p>A track replaces the bone's rest transform for that frame; a bone with no track keeps its rest pose. Nothing in the file states a frame rate. Eight frames per second is the rate at which a clip runs for the length it runs for in the game, so that is what the plugin reports and what the transport starts at. The transport's rate box overrides it, from 1 to 240. That rate is what a clip plays at and what its glTF keys are spaced by. Reading a clip back takes the rate from that spacing rather than assuming one, so a clip written at any rate returns with the frames it left with.</p>
+
+<p>A frame is a pose, not a step. At eight frames per second the stored poses are 125 ms apart, and both the viewport and glTF run between them rather than snapping from one to the next. The viewport blends the two poses either side of the moment it is showing, turning the rotation the short way round and moving the translation straight, and the glTF keys carry <code>LINEAR</code> interpolation so a modelling package does the same.</p>
+
+<h3>Verification</h3>
+<ul>
+  <li>Every <code>.ani</code> the plugin reads parses and re-serialises to the bytes it was read from: 348 clips across the five games.</li>
+  <li>668 of 668 clips round trip through the host glTF codec across all five games, and 653 of 653 do in the two-Kartz pair, at 8, 12, 30 and 60 frames per second alike.</li>
+</ul>
+</body>
+</html>

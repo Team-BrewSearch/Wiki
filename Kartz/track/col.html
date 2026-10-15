@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>The <code>.col</code> is the drivable surface as a chain of cross-sections. A sector is the quad strip between two cross-sections, so the file is a ribbon that follows the road rather than a triangle soup. The layout below describes the two Kartz games; the cross-section pointer variants across the other games are listed on the <a href="../kartz.html">home page</a>.</p>
+
+<h3>File Layout</h3>
+<pre>u32[]        sector record offsets, terminated by a zero
+             (the table's own length is therefore (sectors + 1) * 4)
+cross sections, packed back to back, in the order the sectors first use them
+sector records, 112 bytes each</pre>
+
+<h3>Cross Section</h3>
+<pre>+0x00  u16    0x8000 | (n-1)/2, the number of vertices to either side of the middle
++0x02  u16    the same value again
++0x04  u32    pointer to the middle position, element (n-1)/2
++0x08  u32    pointer to the middle normal
++0x0C  u32    pointer to the middle width
++0x10  i32[3n] positions, one triple per vertex, 20.12
+       i32[3n] normals, one triple per vertex, 20.12, length 4096
+       u32[n-1] widths, 20.12</pre>
+
+<p>The vertex count is stored twice over: the header's low bits give the number of vertices to either side of the middle, and the middle pointer gives the same figure as <code>n = 2 * ((middle - first) / 12) + 1</code>. The two agree in all 3219 cross sections of the two games, and the plugin rejects a section where they disagree. <code>n</code> is always odd, 3, 5 or 7 in the shipped tracks. Widths are the distance from the middle vertex out to each other vertex, measured along the polyline and listed in vertex order with the middle one skipped.</p>
+
+<p>Sectors share cross sections: the end of one sector is the start of the next, and the packed sections tile the region between the table and the first record with no gaps.</p>
+
+<p>The two sections of a sector need not have the same vertex count. About one sector in twenty joins a 3-vertex section to a 5-vertex one, and one track joins a 7 to a 3. The middle vertex is the anchor: vertices correspond by their offset from it, not by their index, and the extra outer vertices of the wider section fan back to the outermost vertex of the narrower one. Pairing them by index instead pulls the surface sideways at those sectors and leaves the outer strips untriangulated.</p>
+
+<p>The chain is the shape of the file: a sector is the span between two cross sections. Widening or moving a piece of road means moving a cross section's vertices. Leaving a cross section out of the model lays it flat on the line between its neighbours rather than removing it, because three files count the sectors and must agree: the <code>.col</code> table, the <code>.bpvs</code> array, and the <code>.trk</code>, which holds the count in the first <code>u16</code> of its header ahead of the chunk count at <code>+0x02</code>.</p>
+
+<p>An import that puts a cross section on top of its neighbour is refused rather than written, since a sector with no length leaves the game nothing to stand on.</p>
+
+<h3>Sector Record</h3>
+<pre>+0x00  u16    sector ordinal, always the record's index in the table
++0x02  u16    flags, 0x8000 throughout
++0x04  i32    sector length, 20.12
++0x08  i32[3] unit vector from the start section's middle vertex to the end section's, 20.12
++0x14  i32    distance along the track, 20.12, running in link order rather than table order
++0x18  i32    zero in 25 of the 28 tracks, a large value in the rest
++0x1C  i32    4096 in 2643 of the 3076 sectors, otherwise 4300..9400, so a multiplier of 1.0 to 2.3
++0x20  u32    zero in every sector of every track
++0x24  u32    zero in every sector of every track
++0x28  u32    a packed pair: 0xFFFF in the high half, a byte count in the low half
+              (112 in 2400 sectors, otherwise 56, 240, 304, 2112, 4160, 4176, 4192)
++0x2C  i32    -1 in most sectors; the rest carry 0, 1, 2, ... in ascending order, twenty per track
++0x30  u32[2] pointer to the next sector's record, twice
++0x38  u32[2] pointer to the previous sector's record, twice
++0x40  i32    zero in 13 of the 28 tracks, a large value in the rest
++0x44  i32    angle between the start section's chord and the sector's heading, 20.12 radians
++0x48  i32    the same angle at the end section
++0x4C  i32[2] the end section's outer vertex on one side, as a distance along the heading and a
+              distance along the start section's arm to that side, 20.12
++0x54  i32[2] the same pair for the other side
++0x5C  i16[2] the same signed value twice, anywhere in -32759..32759
++0x60  u32    pointer to the start cross section
++0x64  u32    pointer to the end cross section
++0x68  i32    a small index, -1..18, with 9 to 19 distinct values per track
++0x6C  u32    0xFFFFFF in the high three bytes and 1..7 in the low byte</pre>
+
+<p>The record layout above is the two-Kartz shape. Across the other three games the cross-section pointers move to the offsets listed on the <a href="../kartz.html">home page</a>, and a record runs to the next one rather than to a fixed length.</p>
+
+<p>Of these fields, <code>+0x04</code>, <code>+0x08</code> and the six values from <code>+0x44</code> are derived from the geometry, and the plugin rebuilds them for the sectors it moves. The length is the distance between the two middle vertices and the vector is that difference normalised; both come back bit for bit. The shape block describes the sector as a quadrilateral in its own frame: the heading is the forward axis, each side's axis is the direction from the start section's middle vertex out to its outer vertex on that side, and the two pairs give where the end section's outer vertices land in that frame, ordered so the first pair is the side the heading turns towards. Reproduced from the retail geometry it lands within 0.0002 units for half the sectors and 0.025 for nine in ten, the rest being sectors at the seams of the sector chain; the plugin only writes a sector's block when it can already reproduce the stored one, and leaves the others alone.</p>
+
+<p><code>+0x14</code> accumulates along the chain of next pointers, not along the record table, and the two orders differ; the plugin never rewrites it. Every other field above is a value whose layout is known but whose purpose is not, and every one of them is carried through untouched.</p>
+
+<p>The last record can be cut short by a few bytes, as the archive stores only as much as the game reads.</p>
+
+<p>Because sectors share cross sections, a surface exported to glTF repeats each shared vertex once per sector, and a modelling package will normally weld those copies back together on the way out. The plugin therefore matches an imported model to the surface by geometry rather than by vertex order: every point that still sits where it was is matched by position, and a point that has moved is found through the triangles around it, as the vertex the model puts opposite the same two neighbours. Two points never claim the same position, so a modelling package that welds, renumbers, reorders or re-triangulates the mesh changes nothing, and a point the model has no room for is left where it is rather than dragged onto its neighbour. Only when less than half the surface can be traced that way does the plugin fall back to taking the nearest vertex for each point.</p>
+
+<h3>Verification</h3>
+<ul>
+  <li>Every <code>.col</code> the two Kartz games ship, 28, round trips byte for byte on re-import unchanged, welded, renumbered, re-triangulated and shuffled.</li>
+  <li>Across all five games the plugin reads 86 <code>.col</code> files, of which 57 hold anything; Monster Jam ships its 29 empty.</li>
+  <li>All 57 non-empty surfaces survive glTF export and re-import unedited.</li>
+  <li>Moving one cross section writes exactly the expected values in all 28 two-Kartz files, and leaving one out lays it between its neighbours in all 28.</li>
+  <li>Rebuilding derived fields after a rigid translation drifts at most 0.05 units across 30,760 field writes.</li>
+</ul>
+</body>
+</html>

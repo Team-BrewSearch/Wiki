@@ -5,14 +5,15 @@
 <script src="../../script.js"></script>
 </head>
 <body>
-<p>A <a href="trk.html">TRK</a> chunk's payload is a Nintendo DS GX command stream, packed four opcodes per 32-bit word. Each opcode then consumes zero or more full parameter words from the same shared word stream before the next opcode is read. A group of fewer than four opcodes at the end of a chunk is padded with <code>0x00</code> bytes - command 0 takes no parameters and does nothing.</p>
+<p>A <a href="trk.html">TRK</a> chunk's payload is a Nintendo DS GX command stream, packed four opcodes per 32-bit word. Each opcode then consumes zero or more full parameter words from the same shared word stream before the next opcode is read. A group of fewer than four opcodes at the end of a chunk is padded with <code>0x00</code> bytes - command 0 takes no parameters and does nothing. The notes below are measured on the two Kartz games; the other three games decode through the same command stream.</p>
 
 <h3>Opcodes</h3>
 <table>
   <thead><tr><th>Opcode</th><th>Name</th><th>Params</th><th>Encoding</th></tr></thead>
   <tbody>
-    <tr><td>0x11</td><td>MTX_PUSH</td><td>0</td><td>Pushes the current matrix onto the GX matrix stack</td></tr>
-    <tr><td>0x12</td><td>MTX_POP</td><td>1</td><td>Pops <code>param &amp; 0x3F</code> levels. Always exactly 1</td></tr>
+    <tr><td>0x11</td><td>MTX_PUSH</td><td>0</td><td>Resets the reader's local scale and translation. The plugin does not model the hardware matrix stack while running a track chunk</td></tr>
+    <tr><td>0x12</td><td>MTX_POP</td><td>1</td><td>Reads <code>param &amp; 0x3F</code>. Always 1 in tracks; the reader ignores it</td></tr>
+    <tr><td>0x14</td><td>MTX_RESTORE</td><td>1</td><td>Restores matrix stack slot <code>param &amp; 0x1F</code>. Character models use it to select the bone the next vertices hang from, as bone index plus ten</td></tr>
     <tr><td>0x1B</td><td>MTX_SCALE</td><td>3</td><td>i32 x 3, 20.12 fixed point</td></tr>
     <tr><td>0x1C</td><td>MTX_TRANS</td><td>3</td><td>i32 x 3, 20.12 fixed point</td></tr>
     <tr><td>0x20</td><td>COLOR</td><td>1</td><td>5 bits per channel, <code>r | g &lt;&lt; 5 | b &lt;&lt; 10</code>, expanded to 8-bit by bit replication</td></tr>
@@ -27,18 +28,78 @@
   </tbody>
 </table>
 
-<p>No other opcode appears anywhere in either game's track data.</p>
+<p>No other opcode appears in the two Kartz games' track data. <code>MTX_RESTORE</code> appears in character models rather than in tracks.</p>
+
+<h3>Commands the Reader Knows</h3>
+<p>The reader assigns these commands a parameter count, applies the ones the GX stream needs, and skips the ones it does not. A skipped command still consumes its parameter words.</p>
+
+<table>
+  <thead><tr><th>Command</th><th>Parameter words</th><th>Reader</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>0</td><td>No-op</td></tr>
+    <tr><td>0x10</td><td>1</td><td>Skipped</td></tr>
+    <tr><td>0x11</td><td>0</td><td>Applied</td></tr>
+    <tr><td>0x12</td><td>1</td><td>Read and ignored</td></tr>
+    <tr><td>0x13</td><td>1</td><td>Skipped</td></tr>
+    <tr><td>0x14</td><td>1</td><td>Applied</td></tr>
+    <tr><td>0x15</td><td>0</td><td>Skipped</td></tr>
+    <tr><td>0x16</td><td>16</td><td>Skipped</td></tr>
+    <tr><td>0x17</td><td>12</td><td>Skipped</td></tr>
+    <tr><td>0x18</td><td>16</td><td>Skipped</td></tr>
+    <tr><td>0x19</td><td>12</td><td>Skipped</td></tr>
+    <tr><td>0x1A</td><td>9</td><td>Skipped</td></tr>
+    <tr><td>0x1B</td><td>3</td><td>Applied</td></tr>
+    <tr><td>0x1C</td><td>3</td><td>Applied</td></tr>
+    <tr><td>0x20</td><td>1</td><td>Applied</td></tr>
+    <tr><td>0x21</td><td>1</td><td>Applied</td></tr>
+    <tr><td>0x22</td><td>1</td><td>Applied</td></tr>
+    <tr><td>0x23</td><td>2</td><td>Applied</td></tr>
+    <tr><td>0x24</td><td>1</td><td>Applied</td></tr>
+    <tr><td>0x25</td><td>1</td><td>Applied</td></tr>
+    <tr><td>0x26</td><td>1</td><td>Applied</td></tr>
+    <tr><td>0x27</td><td>1</td><td>Applied</td></tr>
+    <tr><td>0x28</td><td>1</td><td>Applied</td></tr>
+    <tr><td>0x29</td><td>1</td><td>Skipped</td></tr>
+    <tr><td>0x2A</td><td>1</td><td>Applied</td></tr>
+    <tr><td>0x2B</td><td>1</td><td>Skipped</td></tr>
+    <tr><td>0x30</td><td>1</td><td>Skipped</td></tr>
+    <tr><td>0x31</td><td>1</td><td>Skipped</td></tr>
+    <tr><td>0x32</td><td>1</td><td>Skipped</td></tr>
+    <tr><td>0x33</td><td>1</td><td>Skipped</td></tr>
+    <tr><td>0x34</td><td>32</td><td>Skipped</td></tr>
+    <tr><td>0x40</td><td>1</td><td>Applied</td></tr>
+    <tr><td>0x41</td><td>0</td><td>No-op</td></tr>
+    <tr><td>0x50</td><td>1</td><td>Skipped</td></tr>
+    <tr><td>0x60</td><td>1</td><td>Skipped</td></tr>
+    <tr><td>0x70</td><td>3</td><td>Skipped</td></tr>
+    <tr><td>0x71</td><td>2</td><td>Skipped</td></tr>
+    <tr><td>0x72</td><td>1</td><td>Skipped</td></tr>
+  </tbody>
+</table>
 
 <h3>Vertex Positions</h3>
 <p>Of the six GX vertex-position opcodes, track data uses exactly two: <code>VTX_16</code> for every genuinely new position, and <code>VTX_DIFF</code> - always with a parameter of literally <code>0</code> - for a position identical to the previous vertex's. No <code>VTX_16</code> ever repeats the preceding position.</p>
 <p>Duplicates are common because a mode-0 block emits three independent vertices per triangle, so a triangle reusing a vertex from the one before it restates that position. <code>VTX_16</code>'s raw range is only about plus or minus 8 units, which is why one translate and scale pair is emitted per chunk.</p>
+
+<p>The reader applies these position commands:</p>
+<table>
+  <thead><tr><th>Command</th><th>Words</th><th>Position update</th></tr></thead>
+  <tbody>
+    <tr><td><code>VTX_16</code> 0x23</td><td>2</td><td>X in the low 16 bits and Y in the high 16 bits of word 0, Z in the low 16 bits of word 1, signed and divided by 4096</td></tr>
+    <tr><td><code>VTX_10</code> 0x24</td><td>1</td><td>Three signed 10-bit values packed low to high, each divided by 64</td></tr>
+    <tr><td><code>VTX_XY</code> 0x25</td><td>1</td><td>X in the low 16 bits, Y in the high 16 bits, signed and divided by 4096</td></tr>
+    <tr><td><code>VTX_XZ</code> 0x26</td><td>1</td><td>X in the low 16 bits, Z in the high 16 bits, signed and divided by 4096</td></tr>
+    <tr><td><code>VTX_YZ</code> 0x27</td><td>1</td><td>Y in the low 16 bits, Z in the high 16 bits, signed and divided by 4096</td></tr>
+    <tr><td><code>VTX_DIFF</code> 0x28</td><td>1</td><td>Three signed 10-bit deltas packed low to high, added to the current position, divided by 4096</td></tr>
+  </tbody>
+</table>
 
 <h3>Group Shape</h3>
 <ul>
   <li>A chunk opens with <code>MTX_PUSH</code>, then <code>MTX_TRANS</code>, then <code>MTX_SCALE</code>. The order matters: on hardware both matrix opcodes multiply the current matrix, so <code>MTX_SCALE</code> first would give <code>scale * translate + scale * v</code> instead of <code>translate + scale * v</code>.</li>
   <li>Every <code>TEXIMAGE_PARAM</code> is immediately followed by <code>PLTT_BASE</code> and then a baseline white <code>COLOR</code> of <code>0x7FFF</code>, all before <code>BEGIN_VTXS</code>.</li>
   <li><code>COLOR</code> persists across an entire texture group - the whole run of blocks under one <code>TEXIMAGE_PARAM</code> - and is re-emitted only when it changes or when a group opens.</li>
-  <li><code>TEXCOORD</code> resets at every <code>BEGIN_VTXS</code>: a fresh block's first vertex emits it explicitly even when it matches the previous block's last one, and only vertices within the same block skip a repeat.</li>
+  <li><code>TEXCOORD</code> marks only the next vertex as textured and the reader clears that flag after emitting it. A written stream emits a <code>TEXCOORD</code> for every vertex it marks textured. The writer keeps the coordinates per vertex rather than storing a persistent group texcoord.</li>
   <li><code>NORMAL</code> never appears. Track geometry is vertex-colour shaded only.</li>
   <li>Every non-empty chunk ends with exactly one <code>MTX_POP</code> immediately after its final <code>END_VTXS</code>, then whatever no-ops complete the final packed word.</li>
 </ul>

@@ -5,24 +5,42 @@
 <script src="../../script.js"></script>
 </head>
 <body>
-<p>Three kinds of file sit in the archive that nothing here decodes. Each is load-bearing for the running game, and an edited track leaves them describing the geometry it replaced.</p>
+<p>These are the archive formats outside <a href="../archive/gda.html">GDA</a>, <a href="../texture/5tx.html">5TX</a>, <a href="../track/trk.html">TRK</a>, the <a href="../track/displaylist.html">display list</a> and the <a href="../resource/rdf.html">RDF</a> pair. Each spec page states the layout, the parser checks and the round-trip result. Across all five games the plugin reads 86 <code>.col</code>, 588 <code>.zon</code>, 115 <code>.bpvs</code>, 86 <code>.trk</code>, 103 <code>.car</code>, 64 <code>.amd</code>, 43 <code>.ske</code> and 348 <code>.ani</code> files. The 29 <code>.col</code> and 29 <code>.bpvs</code> files Monster Jam ships empty are the only ones with nothing to read.</p>
 
-<div class="note">
-  <strong>Status:</strong> Not reverse-engineered.
-</div>
-
-<h3>Files</h3>
+<h3>Spec Pages</h3>
 <table>
-  <thead><tr><th>File</th><th>Notes</th></tr></thead>
+  <thead><tr><th>File</th><th>Contents</th><th>Spec</th></tr></thead>
   <tbody>
-    <tr><td><code>.col</code></td><td>Per-track collision mesh, beside the <code>.trk</code>. Element 0 of the track's <code>model</code> list in the <a href="../resource/rdf.html">RDF</a></td></tr>
-    <tr><td><code>.bpvs</code></td><td>Visibility and occlusion data, keyed by chunk index. Element 2 of the same <code>model</code> list. Its section count matches the track's primary chunk count on 10 of 16 Super Star Kartz tracks and is exactly one higher on the other 6</td></tr>
-    <tr><td><code>.zon</code></td><td>Zone and prop model bundles, in the lower-case track directory - for example <code>sharkbeach/water.zon</code>. Each is named by the <code>model</code> property of a <code>dynamicobject</code> record in the RDF, which also carries that object's own texture table, so a <code>.zon</code>'s textures do not compete for the track's slots</td></tr>
+    <tr><td><code>.col</code></td><td>Collision surface as a chain of cross-sections and sectors</td><td><a href="../track/col.html">COL</a></td></tr>
+    <tr><td><code>.bpvs</code></td><td>Per-sector run-length list of which track chunks to draw</td><td><a href="../track/bpvs.html">BPVS</a></td></tr>
+    <tr><td><code>.zon</code></td><td>Scenery bundle of chunks in the same format a track uses</td><td><a href="zon.html">ZON</a></td></tr>
+    <tr><td><code>.car</code></td><td>Vehicle or prop model with a wheel block in its tail</td><td><a href="car.html">CAR</a></td></tr>
+    <tr><td><code>.amd</code></td><td>Skinned character model, one chunk or bone-tagged parts</td><td><a href="amd.html">AMD</a></td></tr>
+    <tr><td><code>.ske</code></td><td>Skeleton of parented bones carrying rest transforms</td><td><a href="ske.html">SKE</a></td></tr>
+    <tr><td><code>.ani</code></td><td>Animation clip of one 4x4 matrix per frame per animated bone</td><td><a href="ani.html">ANI</a></td></tr>
   </tbody>
 </table>
 
+<h3>Verified</h3>
+<ul>
+  <li>Every file the plugin reads parses and re-serialises to the bytes it was read from.</li>
+  <li>Across all five games the host glTF codec round trips 57 collision surfaces, 103 vehicles, 64 characters, 43 skeletons, 668 animations, 54 of the 57 tracks the plugin writes, and 576 of 588 scenery models.</li>
+  <li>Every byte is accounted for in the seven formats: 742,140 bytes of <code>.col</code>, 192,912 of <code>.zon</code>, 233,601 of <code>.bpvs</code>, 184,368 of <code>.car</code>, 656,796 of <code>.amd</code>, 26,132 of <code>.ske</code> and 1,331,840 of <code>.ani</code>.</li>
+  <li>Nine format detectors over 1,433 samples agree except for one loose <code>.trk</code> match that the detection order settles.</li>
+</ul>
+
 <h3>Editing a Track</h3>
 <p><code>.bpvs</code> and the <a href="../track/trk.html">TRK tail sections</a> are keyed by chunk index rather than by geometry, so they stay valid as long as a track keeps its chunk count, its primary and detail split, and its per-index positions. A different chunk layout invalidates both: a chunk 5 covering a different world region than the original chunk 5 produces per-chunk visual corruption and rasterizer crashes.</p>
-<p><code>.col</code> is not keyed that way and cannot be sidestepped: after a geometry change the collision mesh still describes the original track.</p>
+<p>A <code>.col</code> can be replaced from glTF. The plugin rewrites the values it can reproduce from the geometry and carries the rest through untouched. It does not rewrite the sector distance chain, which accumulates in link order rather than table order.</p>
+
+<h3>Known Limits</h3>
+<ul>
+  <li>A Monster Jam track cannot be written back. Its chunks use the wide header, and what places a chunk rather than a position from the table has not been worked out. Reading, drawing and exporting work.</li>
+  <li>Monster Jam ships no collision or visibility: its 29 <code>.col</code> files are zero bytes and its 29 <code>.bpvs</code> files are a 12-byte stub.</li>
+  <li>Nine files come back reordered: three Hot Wheels tracks, one Madagascar Kartz scenery model, one Hot Wheels and one Pimp My Ride scenery model, and three Monster Jam ones.</li>
+  <li>Six Monster Jam scenery models lose up to 24 units of position fidelity when rebuilt.</li>
+  <li>In the two-Kartz character set, 43 of 49 <code>.amd</code> files come back byte for byte and the other six differ by at most 0.0014 units, from 1/4096 grid rounding through the rest-pose transform on the deepest bone chains.</li>
+  <li>The twelve bytes an <code>.amd</code> keeps per part are still unread, so the plugin copies them through unchanged.</li>
+</ul>
 </body>
 </html>

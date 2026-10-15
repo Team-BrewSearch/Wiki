@@ -5,7 +5,7 @@
 <script src="../../script.js"></script>
 </head>
 <body>
-<p><code>.5tx</code> is the iStudio NDS texture container: a 16-byte <code>NTTX</code> header, an optional palette section, and an image section. Seven pixel formats exist; six appear in the shipped data.</p>
+<p><code>.5tx</code> is the iStudio NDS texture container: a 16-byte <code>NTTX</code> header, an optional palette section, and an image section. Seven pixel formats exist; six appear in the shipped data. The counts and texture notes below are measured on the two Kartz games; the plugin uses this reader for every game on this engine.</p>
 
 <h3>File Layout</h3>
 <pre>+----------------------+   &lt;-- offset 0
@@ -24,8 +24,8 @@
     <tr><td>0x04</td><td>2</td><td>u16</td><td><code>0xFEFF</code>, byte-order mark</td></tr>
     <tr><td>0x06</td><td>2</td><td>u16</td><td><code>0x0100</code>, version</td></tr>
     <tr><td>0x08</td><td>4</td><td>u32</td><td>Total file size</td></tr>
-    <tr><td>0x0C</td><td>2</td><td>u16</td><td><code>textureParam</code> - <code>0x0010</code> on every shipped texture in both games</td></tr>
-    <tr><td>0x0E</td><td>2</td><td>u16</td><td><code>paletteBanks</code> - one more than the number of palette banks the image needs</td></tr>
+    <tr><td>0x0C</td><td>2</td><td>u16</td><td><code>TextureParam</code> - <code>0x0010</code> on every shipped texture in both games</td></tr>
+    <tr><td>0x0E</td><td>2</td><td>u16</td><td><code>FormatHint</code> - the palette-bank count the image needs, plus one, as described below</td></tr>
   </tbody>
 </table>
 
@@ -34,6 +34,8 @@
 
 <pre>banks = (format == DIRECT) ? 0 : max(1, ceil(numColors / entriesPerBank[format]))
 paletteBanks = banks + 1</pre>
+
+<p>The plugin reads this word as <code>FormatHint</code>. It does not compute or validate it, and the texture writer carries the value through unchanged.</p>
 
 <table>
   <thead><tr><th>Format</th><th>Entries per bank</th><th>Observed colour counts</th><th>Observed field values</th></tr></thead>
@@ -50,11 +52,11 @@ paletteBanks = banks + 1</pre>
 <p>Values above <code>0x0002</code> are simply textures shipping more than one palette for the same image; the largest, <code>0x000D</code>, is a PLTT256 image carrying twelve banks of 256.</p>
 
 <div class="note">
-  <strong>Note:</strong> A file that zeroes 0x0C and 0x0E decodes identically but is rejected by the game, which draws the texture as a solid fallback colour. A writer does not have to preserve the field blindly - it can compute it from <code>numColors</code> and the format.
+  <strong>Note:</strong> A file that zeroes 0x0C and 0x0E decodes identically but is rejected by the game, which draws the texture as a solid fallback colour. The plugin rewrites a texture while preserving both fields from the template.
 </div>
 
 <h3>PALT Section</h3>
-<p>Repeats while the next four bytes read <code>"PALT"</code>; in practice there is at most one.</p>
+<p>Repeats while the next four bytes read <code>"PALT"</code>; in practice there is at most one. The parser accepts a section size only when it is non-zero and fits the file, and it reads at most <code>numColors</code> palette entries, clamped to the bytes actually remaining in the file.</p>
 <table>
   <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
@@ -70,22 +72,24 @@ paletteBanks = banks + 1</pre>
   <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
     <tr><td>+0x00</td><td>4</td><td>char[4]</td><td>Magic <code>"IMGE"</code></td></tr>
-    <tr><td>+0x04</td><td>4</td><td>u32</td><td>Section size</td></tr>
+    <tr><td>+0x04</td><td>4</td><td>u32</td><td>Section size (stored; the reader does not validate it when decoding)</td></tr>
     <tr><td>+0x08</td><td>1</td><td>u8</td><td><code>format</code>, see below</td></tr>
-    <tr><td>+0x09</td><td>1</td><td>u8</td><td><code>log2Width</code> - padded width is <code>8 &lt;&lt; log2Width</code></td></tr>
-    <tr><td>+0x0A</td><td>1</td><td>u8</td><td><code>log2Height</code> - padded height is <code>8 &lt;&lt; log2Height</code></td></tr>
+    <tr><td>+0x09</td><td>1</td><td>u8</td><td><code>log2Width</code> - padded width is <code>8 &lt;&lt; log2Width</code>, with the stored value clamped to 0..10</td></tr>
+    <tr><td>+0x0A</td><td>1</td><td>u8</td><td><code>log2Height</code> - padded height is <code>8 &lt;&lt; log2Height</code>, with the stored value clamped to 0..10</td></tr>
     <tr><td>+0x0B</td><td>1</td><td>u8</td><td><code>c0xp</code> - nonzero renders palette index 0 fully transparent</td></tr>
     <tr><td>+0x0C</td><td>2</td><td>u16</td><td><code>origWidth</code></td></tr>
     <tr><td>+0x0E</td><td>2</td><td>u16</td><td><code>origHeight</code></td></tr>
-    <tr><td>+0x10</td><td>4</td><td>u32</td><td>Combined texel payload size</td></tr>
+    <tr><td>+0x10</td><td>4</td><td>u32</td><td>Combined texel payload size (stored; the reader computes payload size from the format and padded dimensions)</td></tr>
     <tr><td>+0x14</td><td>var</td><td>u8[]</td><td>Texel data, sized to the <strong>padded</strong> dimensions</td></tr>
     <tr><td>var</td><td>var</td><td>u8[]</td><td>Block mode data, format 5 only, exactly half the texel array's size</td></tr>
   </tbody>
 </table>
 
-<p>Rows are addressed by the padded width, then the leftmost <code>origWidth</code> columns and first <code>origHeight</code> rows are kept. Every shipped texture already has <code>origWidth</code> and <code>origHeight</code> equal to its padded size, so the crop is a no-op there, but it is required for correctness in general.</p>
+<p>Rows are addressed by the padded width, then the leftmost <code>origWidth</code> columns and first <code>origHeight</code> rows are kept. Every shipped texture already has <code>origWidth</code> and <code>origHeight</code> equal to its padded size, so the crop is a no-op there, but it is required for correctness in general. The parser rejects an image whose stored size is larger than its padded size, clamps the texel size it reads to the bytes that remain, and treats any format outside the known list as red <code>(255, 0, 0, 255)</code>.</p>
 
 <p>The byte at +0x09 is <code>log2(width / 8)</code>, not a flags field.</p>
+
+<p>The reader starts pixel data at IMGE <code>+0x14</code> and sizes the payload from the format and the padded dimensions, not from the IMGE header's stored size words.</p>
 
 <h3>Pixel Formats</h3>
 <table>
@@ -123,7 +127,7 @@ paletteBanks = banks + 1</pre>
   <li><code>0x8000</code>: <code>colors[2] = palette[address + 2]</code>, <code>colors[3] = palette[address + 3]</code>, both opaque</li>
   <li><code>0xC000</code>: <code>colors[2] = Blend(c0, c1, 3/8)</code>, <code>colors[3] = Blend(c0, c1, 5/8)</code>, both opaque</li>
 </ul>
-<p>Per pixel, <code>j = (x &amp; 3) + ((y &amp; 3) &lt;&lt; 2)</code> and <code>pixelIndex = (texel &gt;&gt; (2 * j)) &amp; 0x3</code>. <code>Blend(a, b, f)</code> is <code>round((a * (8 - f) + b * f) / 8)</code> per channel.</p>
+<p>Per pixel, <code>j = (x &amp; 3) + ((y &amp; 3) &lt;&lt; 2)</code> and <code>pixelIndex = (texel &gt;&gt; (2 * j)) &amp; 0x3</code>. <code>Blend(a, b, f)</code> is <code>round((a * (8 - f) + b * f) / 8)</code> per channel, then the result is put through the 6-to-8-bit table.</p>
 
 <h3>RGB555</h3>
 <p>Colours are 15-bit: R in bits 0-4, G in bits 5-9, B in bits 10-14, bit 15 unused. Conversion to 8-bit uses rounding tables rather than bit replication - raw 5-bit value 3 becomes 25, not the 24 a naive <code>&lt;&lt; 3 | &gt;&gt; 5</code> produces.</p>

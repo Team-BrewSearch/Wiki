@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p><code>Navigation.nav</code> in each level. Loader: 0x800952e0 (<code>NavMesh.cpp</code>).</p>
+
+<h3>File Layout</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>char[4]</td><td>Magic <code>Nav\0</code></td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>Version; must be 11</td></tr>
+    <tr><td>0x08</td><td>4</td><td>u32</td><td>Mesh count</td></tr>
+    <tr><td>0x0C</td><td>-</td><td></td><td>Meshes, 0x28 bytes each</td></tr>
+  </tbody>
+</table>
+
+<h3>Mesh (0x28 bytes)</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Vertex count</td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>Polygon count</td></tr>
+    <tr><td>0x08</td><td>4</td><td>u32</td><td>Edge count</td></tr>
+    <tr><td>0x0C</td><td>24</td><td>f32[6]</td><td>Bounding box: minimum, maximum</td></tr>
+    <tr><td>0x24</td><td>4</td><td>off</td><td>Data</td></tr>
+  </tbody>
+</table>
+
+<p>The data is the vertices (f32 × 3), then the polygons (0x14 bytes each), then the edges (u16 × 2). The loader records the three arrays per mesh and builds a lookup over the polygons.</p>
+
+<h3>Polygon (0x14 bytes)</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>2</td><td>u16</td><td>Vertex index 0</td></tr>
+    <tr><td>0x02</td><td>2</td><td>u16</td><td>Vertex index 1</td></tr>
+    <tr><td>0x04</td><td>2</td><td>u16</td><td>Vertex index 2</td></tr>
+    <tr><td>0x06</td><td>2</td><td>u16</td><td>Unused</td></tr>
+    <tr><td>0x08</td><td>4</td><td>u32</td><td>First edge</td></tr>
+    <tr><td>0x0C</td><td>4</td><td>u32</td><td>Edge count</td></tr>
+    <tr><td>0x10</td><td>4</td><td>u32</td><td>Flags</td></tr>
+  </tbody>
+</table>
+
+<h3>Edges</h3>
+<p>Each edge is two u16 values.</p>
+</body>
+</html>

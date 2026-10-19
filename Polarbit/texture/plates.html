@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>Texture-atlas plates that name sub-images packed into a texture atlas. Each plate sits next to a <code>.pvr</code> of the same name and the same size. Two generations use different layouts.</p>
+
+<h3>TLPB Plates (Getaway)</h3>
+<pre>0    4     "TLPB"
+4    u32   4 (version)
+8    u32   Atlas width
+12   u32   Atlas height
+16   5*u32 unknown (small values: 0/4/5, 0/1, 0/1, 1, 0/1)
+36   u32   Entry count
+40   i32   -1
+44   ...   Entries:
+             fixed u, v, du, dv     (fractions of the atlas size)
+             u16 width, u16 height  (pixels; equal to du*W and dv*H)
+             u32 0
+             u16 name length L, then L bytes: name + NUL</pre>
+<p>Names are unique within a plate, e.g. <code>TRACK_SELECT_BG</code>, <code>money1</code>, <code>sparks_blue_add</code> and the 573 glyph images of <code>frontend/gray_plate.plt</code>. </p>
+
+<h3>PLT Plates (Raging Thunder 2)</h3>
+<p>RT2's plates have no magic and mix byte orders: a little-endian header followed by big-endian records.</p>
+<pre>0    u16   Atlas width W
+2    u16   Atlas height H
+4    u16   Rectangle count N
+6    u16   9
+8    u32   W * H
+12   u32   0
+16   u32   1
+20   N x 40 bytes, big-endian:
+       u32 width, u32 height (pixels)
+       fixed u, v for the four corners: top-left, top-right, bottom-left, bottom-right</pre>
+<p>The corners always form an axis-aligned rectangle whose size matches the pixel width and height. Rectangles are unnamed, so the game refers to them by index. This is the one exception to the all-little-endian rule.</p>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>Polarbit games use two audio formats: <strong>PSND</strong> sound blocks and <strong>PMOD</strong> tracker modules (CNK3D and KKR only). CNK2 uses streamed PCM for music; the others use PMOD for music.</p>
+
+<h3>PSND Sound</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>char[4]</td><td>Magic <code>PSND</code></td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>Size of what follows</td></tr>
+    <tr><td>0x08</td><td>2</td><td>u16</td><td>A = number of header bytes after this field; sample data starts at offset 10 + A</td></tr>
+    <tr><td>0x0A</td><td>2</td><td>u16</td><td>Flags</td></tr>
+    <tr><td>0x0C</td><td>2</td><td>u16</td><td>Sample rate, Hz</td></tr>
+    <tr><td>0x0E</td><td>-</td><td></td><td>Optional fields, in this order, when their flag bit is set:</td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Bit</th><th>Field</th></tr></thead>
+  <tbody>
+    <tr><td>0x001</td><td>u8 channels (1 if absent)</td></tr>
+    <tr><td>0x002</td><td>u8 bits per sample, 8 or 16; presence means PCM</td></tr>
+    <tr><td>0x004</td><td>u16 default volume, 0-256 (absent = full)</td></tr>
+    <tr><td>0x008</td><td>u32 loop start, u32 loop end, in samples</td></tr>
+    <tr><td>0x010</td><td>u8 loop type: 2 = ping-pong (absent = forward)</td></tr>
+    <tr><td>0x200</td><td>u16 unknown (80 to 180, always a multiple of 10)</td></tr>
+    <tr><td>0x400</td><td>i16 finetune, 1/128 semitone</td></tr>
+    <tr><td>0x800</td><td>i8 relative note, semitones</td></tr>
+  </tbody>
+</table>
+<p>No other flag bits occur. A sound without the bits field is IMA ADPCM with no header fields of its own: the high nibble is decoded first and both predictor and step index start at 0.</p>
+
+<h4>Stand-alone vs PMOD samples</h4>
+<table>
+  <thead><tr><th>Game</th><th>Stand-alone</th><th>PMOD samples</th></tr></thead>
+  <tbody>
+    <tr><td>CNK2</td><td>66 PCM16 stereo (51 at 44.1 kHz, 14 at 22.05, 1 at 48)</td><td>-</td></tr>
+    <tr><td>CNK3D</td><td>26 PCM16 stereo (25 at 44.1, 1 at 22.05); 2 ADPCM mono at 11.025</td><td>89 ADPCM mono at 8,363 Hz</td></tr>
+    <tr><td>KKR</td><td>21 PCM16 stereo (8 at 44.1, 13 at 48); 12 ADPCM mono at 22.05</td><td>96 PCM16 + 2 PCM8, mono, 8,363 Hz</td></tr>
+    <tr><td>Getaway</td><td>72 ADPCM mono (40 at 22.05, 30 at 27, 1 at 44.1)</td><td>-</td></tr>
+    <tr><td>RT2</td><td>52 ADPCM mono at 22.05</td><td>-</td></tr>
+  </tbody>
+</table>
+
+<h3>PMOD Music Modules</h3>
+<pre>+0x00  4     "PMOD"
++0x04  u32   size - 8
++0x08  u32   30 (header length)
++0x0C  u16   1 (version)
++0x0E  u16   4096 (unknown)
++0x10  u8    initial speed (CNK3D 2, KKR 3/4/6)
++0x11  u8    BPM
++0x12  u16   song length (order count)
++0x14  u16   restart position
++0x16  u16   pattern count
++0x18  u16   rows per pattern, or 0 for per-pattern row counts (KKR)
++0x1A  u16   channels (CNK3D 32, KKR 16, one module 4)
++0x1C  u16   256 (unknown)
++0x1E  u16   sample count
++0x20  u16   instrument count
++0x22  u16   27 (unknown)
++0x24  u16   0
++0x26  u32   54784 (unknown)
++0x28  ...   zlib stream (level 9) holding the module body</pre>
+
+<p>The inflated body is laid out as: order list, per-pattern row counts (when rows field is 0), patterns, embedded PSND samples, and instruments. Each instrument has a keyframe length, a 96-entry keymap, envelope count and per-envelope point data.</p>
+
+<h4>Effect Numbers</h4>
+<table>
+  <thead><tr><th>Effect</th><th>Cells</th><th>Use</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>2,141</td><td>parameters 0x47, 0x37, 0x0C, 0x38</td><td>Arpeggio</td></tr>
+    <tr><td>2</td><td>21</td><td>consecutive rows</td><td>Portamento (pitch slide)</td></tr>
+    <tr><td>10</td><td>5</td><td>last row, parameter below song length</td><td>Position jump</td></tr>
+    <tr><td>13</td><td>7</td><td>row 0, parameters 130-225</td><td>Set tempo (BPM)</td></tr>
+    <tr><td>26</td><td>5,929</td><td>0x33, 0x44, 0xCC (multiples of 17) or 0x7E</td><td>Set panning</td></tr>
+  </tbody>
+</table>
+
+<p>The numbering is Polarbit's own (XM would use 0, 2, 0x0B, 0x0F and 8). The header words at 14, 28, 34, 36 and 38 are identical in every module.</p>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p><strong>PXC</strong> replaces PIFF in the 2011 games (Reckless Getaway and Raging Thunder 2). One file holds a whole car, a track, or a set of props as a tree of typed objects. Versions 16–20 are RT2; 54–55 are Getaway.</p>
+
+<h3>File Layout</h3>
+<pre>+0x00  u32  0x1A2B3C4D
++0x04  u16  version: 16/19/20 (RT2) or 54/55 (Getaway)
++0x06  u16  1
++0x08  ...  root object, to the end of the file</pre>
+
+<h3>Object Header</h3>
+<pre>u32    class tag ("SGNO", "SGPS", ...)
+u32    size of the rest of the object, to the end of its children
+u16    name length L, then L bytes: name + NUL
+u32    flags (0 almost everywhere; 0xC00 on some meshes, 1 on a few nodes)
+       Getaway layout only: property list (below)
+...    class body</pre>
+<p>Container classes hold their children. In the Getaway layout the child count is preceded by <code>i32 -1</code>. Most classes carry a 76-byte placement block followed by an animation slot.</p>
+
+<h4>Placement Block</h4>
+<pre>fixed radius            bounding sphere (radius = length of half size)
+fixed centre[3]         bounding box centre
+fixed half size[3]      bounding box half extents
+fixed matrix[9]         3x3 rotation/scale (row-major)
+fixed translation[3]
+[u8 0 or 1]             Getaway layout only, meaning unknown
+animation slot          "#RES" + u32 0 (none) or a SANI chunk</pre>
+<p>The bounds are in the object's own space. The matrix and translation place the object in its parent: <code>parent position = M * v + t</code>. Mesh texture coordinates follow the v-up convention, so OBJ export uses them unchanged.</p>
+
+<h3>Object Classes</h3>
+<table>
+  <thead><tr><th>Class</th><th>Meaning</th><th>Children</th><th>Placement</th><th>Body</th></tr></thead>
+  <tbody>
+    <tr><td><code>SGGR</code></td><td>Group (root)</td><td>Yes</td><td>No</td><td>Nothing</td></tr>
+    <tr><td><code>SGNO</code></td><td>Node</td><td>Yes</td><td>Yes (after children)</td><td>Nothing</td></tr>
+    <tr><td><code>SGPS</code></td><td>Mesh instance</td><td>No</td><td>Yes</td><td>Geometry chunk + material block</td></tr>
+    <tr><td><code>SGSP</code></td><td>Locator</td><td>No</td><td>Yes</td><td>Nothing</td></tr>
+    <tr><td><code>SGCA</code></td><td>Camera</td><td>No</td><td>Yes</td><td>Fixed aspect, fov, near, far</td></tr>
+    <tr><td><code>SGME</code></td><td>Metadata object (RT2)</td><td>No</td><td>Yes</td><td>Property list</td></tr>
+    <tr><td><code>SGMR</code></td><td>Reference to another object by name (Getaway)</td><td>No</td><td>Yes</td><td><code>u16 length + name</code></td></tr>
+    <tr><td><code>SGPR</code></td><td>Projector (Getaway)</td><td>No</td><td>Yes</td><td>Texture chunk, <code>u32 1</code>, fixed 10.0, fixed 5.0</td></tr>
+    <tr><td><code>SGLI</code></td><td>Light (Getaway)</td><td>No</td><td>Yes</td><td>73 bytes</td></tr>
+    <tr><td><code>SGAN</code></td><td>Animation set (Getaway)</td><td>Yes</td><td>Yes</td><td>Named clips</td></tr>
+    <tr><td><code>SGCU</code></td><td>Curve</td><td>No</td><td>No</td><td>Points and branches</td></tr>
+    <tr><td><code>SGCO</code></td><td>Collision</td><td>No</td><td>No</td><td>STCO chunk</td></tr>
+    <tr><td><code>SGPC</code></td><td>Portal cells (RT2 track root)</td><td>Yes</td><td>No</td><td>Cell graph</td></tr>
+    <tr><td><code>SGG2</code></td><td>Grid cells (Getaway track root)</td><td>Yes</td><td>No</td><td>Cell grid</td></tr>
+  </tbody>
+</table>
+
+<h3>Property Lists (9.2)</h3>
+<pre>u32    count
+per property: u16 length + name (NUL-terminated), then a typed chunk:
+  "STRI" u32 size, u16 length + string (NUL-terminated)
+  "REAL" u32 4,    fixed
+  "UI32" u32 4,    u32
+  "bool" u32 1,    u8 0 or 1</pre>
+
+<h3>Geometry: MESH and LICM</h3>
+<p>SGPS geometry is a <code>MESH</code> chunk or, for track scenery, <code>LICM</code>. Both start with:</p>
+<pre>fixed radius, centre[3], half size[3]    (28 bytes)
+[u32 vertex block count V, u32 index block count I]     Getaway layout; RT2 has one of each
+V x vertex block:  u32 format, u32 count, u32 0, vertices
+I x index block:   u32 4 (GL_TRIANGLES), u32 count, u32 5, u16 indices</pre>
+<p>Vertex format bits: every vertex has a fixed position (12 bytes) and fixed texture coordinates (8 bytes); 0x10 adds a fixed normal (12 bytes) and 0x100 a 4-byte RGBA colour. Formats: 0x1000 (20 bytes), 0x1010 (32), 0x1100 (24), 0x1110 (36).</p>
+
+<h4>Materials</h4>
+<table>
+  <thead><tr><th>Variant</th><th>Layout</th></tr></thead>
+  <tbody>
+    <tr><td>RT2</td><td><code>u32 count</code>, then per material: texture chunk, opaque block (36 bytes v16, 44 otherwise), <code>u32 shader</code> (0 or 2)</td></tr>
+    <tr><td>Getaway</td><td><code>GaRM</code> chunk: <code>u32 count, u32 76</code>, then per material: texture chunk + 64-byte opaque block</td></tr>
+  </tbody>
+</table>
+
+<h4>Draw Ranges</h4>
+<table>
+  <thead><tr><th>Layout</th><th>Record</th></tr></thead>
+  <tbody>
+    <tr><td>MESH (RT2)</td><td><code>u32 count</code>, then {u16 5, u16 material, u16 index count, u16 first index}, 8 bytes per entry</td></tr>
+    <tr><td>MESH (Getaway)</td><td>Same but padded to 16 bytes with zeros</td></tr>
+    <tr><td>LICM (RT2)</td><td>MESH ranges, then cell table: <code>u32 cell count, u32 0, u32 range count</code>, 40-byte cell records, 8 zero bytes, per-cell range runs</td></tr>
+    <tr><td>LICM (Getaway)</td><td>MESH range count 0, then <code>u32 junk, u32 cell count, u32 range count</code>, cell records, 16-byte ranges</td></tr>
+  </tbody>
+</table>
+
+<h3>Curves</h3>
+<pre>u32  point count N, fixed point[N][3]
+u32  branch count
+per branch: u32 point count, fixed point[][3], fixed fork distance, fixed join distance</pre>
+<p>Driveline curves have one to four branches (shortcuts) that leave and rejoin the main line. Other curves are animation paths, AI lanes, respawn and camera splines.</p>
+
+<h3>STCO Collision</h3>
+<p>Both games store track collision as triangles in a spatial hash. Material numbers 0-49 index the database's 50-entry material-response list.</p>
+
+<h4>RT2 STCO</h4>
+<pre>u32  bucket count NB, u32 triangle count NT, u32 reference count NR, u32 slot count S (797)
+u32  bucket count per slot [S]          (sums to NB)
+NB x { u32 cell key, u32 first reference, u32 ground count, u32 wall count }
+NT x 64-byte triangle:
+     u32 type (1 or 2), fixed vertex[3][3], fixed plane normal[3], fixed plane d,
+     3 colour bytes + 0xFF, u32 surface (low bits 0..15, bit 31 a flag)
+u32  triangle index [NR]</pre>
+
+<h4>Getaway STCO</h4>
+<pre>u32  bucket count NB, u32 reference count NR, u32 slot count S (16000)
+u32  bits x, u32 bits y, u32 bits z     (such as 11, 7, 14; sum to 32)
+fixed cell size[3], 3 x u32 unknown
+u32  bucket count per slot [S]
+NB x { cell key, first reference, ground count, wall count }   (key mod 16000 = slot)
+"PATA" u32 size:
+  u32  triangle count NT
+  NT x 80-byte triangle:
+       u32 type (1, 2 or 6), fixed vertex[3][3], i32 neighbour[3] (-1 = open edge),
+       fixed plane normal[3], fixed plane d, 2 x u32 unknown, u32 flags (0x40000001 on type 1)
+u32  triangle index [NR]
+fixed bounds[6]</pre>
+
+<h3>Cells</h3>
+<h4>SGPC (RT2 track root)</h4>
+<pre>u32  node count, u32 neighbour count, u32 plane count, u32 portal count
+per node: u16 first neighbour, u16 neighbour count, u16 a, u16 b, u32 kind
+u16    neighbour node [neighbour count]
+fixed  plane[4] per plane (unit normal, d)
+fixed  quad[4][3] per portal</pre>
+<p>Nodes alternate between portals (kind 0x1000: <code>a=1</code>, <code>b</code> = portal number) and convex cells (kind 0x800: <code>a</code> planes starting at plane <code>b</code>).</p>
+
+<h4>SGG2 (Getaway track root)</h4>
+<pre>fixed min[3], max[3], origin[3]
+u32  nx, u32 nz, u32 1191, u32 1191, u32 cell count (= nx * nz)
+per cell: u32 0x100 if the cell has geometry, else 0; fixed box[6]
+u32  cell order [cell count]</pre>
+</body>
+</html>

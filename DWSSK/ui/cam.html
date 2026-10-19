@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p><code>.cam</code> camera path files. The loader has not been found, so this layout comes from the files only. Every file round-trips through the plugin.</p>
+
+<h3>File Layout</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Version</td></tr>
+    <tr><td>0x04</td><td>4</td><td>off, u32</td><td>Position keys, 4 × f32 each</td></tr>
+    <tr><td>0x0C</td><td>4</td><td>off, u32</td><td>Direction keys, 4 × f32 each</td></tr>
+    <tr><td>0x14</td><td>4</td><td>off, u32</td><td>Field-of-view keys, 2 × f32 each</td></tr>
+    <tr><td>0x1C</td><td>-</td><td></td><td>Key data, in that order</td></tr>
+  </tbody>
+</table>
+
+<p>The last float of each key is its time.</p>
+</body>
+</html>

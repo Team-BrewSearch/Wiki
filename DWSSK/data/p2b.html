@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p><code>.p2b</code> tuning tables. Loader: 0x800925a0. Each table B entry is registered with 0x80093270.</p>
+
+<h3>File Layout</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>2</td><td>u16</td><td>Version; must be 0x000A</td></tr>
+    <tr><td>0x02</td><td>2</td><td>u16</td><td>Flags: bit 0 relocated, bit 1 ready; a table with bit 0 set is not relocated again</td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>Count A</td></tr>
+    <tr><td>0x08</td><td>4</td><td>off</td><td>Table A (0x0C bytes each; offset at 0x08)</td></tr>
+    <tr><td>0x0C</td><td>4</td><td>u32</td><td>Count B</td></tr>
+    <tr><td>0x10</td><td>4</td><td>off</td><td>Table B (8 bytes each; two offsets)</td></tr>
+    <tr><td>0x14</td><td>4</td><td>u32</td><td>Count C</td></tr>
+    <tr><td>0x18</td><td>4</td><td>off</td><td>Table C (0x0C bytes each; offset at 0x08)</td></tr>
+    <tr><td>0x1C</td><td>4</td><td>u32</td><td>Count D</td></tr>
+    <tr><td>0x20</td><td>4</td><td>off</td><td>Table D (8 bytes each; offset at 0x04)</td></tr>
+  </tbody>
+</table>
+</body>
+</html>

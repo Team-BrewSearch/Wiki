@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p><code>.animpack</code> holds one pack per character, beside its <code>MASTER</code> folder. Loader: 0x800f26f0 (<code>loadCharacter.cpp</code>). Each pack contains multiple clips. A clip's skeleton LOD in use picks the track table.</p>
+
+<h3>Header</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>off</td><td>First animation, always 0x0C</td></tr>
+    <tr><td>0x04</td><td>4</td><td>f32</td><td>Version; must be 22.0</td></tr>
+    <tr><td>0x08</td><td>1</td><td>u8</td><td>Animation count</td></tr>
+    <tr><td>0x09</td><td>3</td><td>u8[3]</td><td><code>F8 12 00</code> in every file; not read</td></tr>
+  </tbody>
+</table>
+
+<h3>Animation (0x80 bytes)</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Name hash</td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>Path hash of the event list; 0 for none</td></tr>
+    <tr><td>0x08</td><td>4</td><td>u32</td><td>Runtime: the event list</td></tr>
+    <tr><td>0x0C</td><td>8</td><td>char[8]</td><td>Name, cut to 8 characters; not read</td></tr>
+    <tr><td>0x14</td><td>24</td><td>off[6]</td><td>Track table for skeleton LOD 0 to 5; only LOD 0 is used</td></tr>
+    <tr><td>0x2C</td><td>4</td><td>off</td><td>Curve table</td></tr>
+    <tr><td>0x30</td><td>4</td><td>f32</td><td>Not read by the loader or sampler</td></tr>
+    <tr><td>0x34</td><td>4</td><td>f32</td><td>Duration in seconds</td></tr>
+    <tr><td>0x38</td><td>6</td><td>u8[6]</td><td>Track count per LOD</td></tr>
+    <tr><td>0x3E</td><td>1</td><td>u8</td><td>Curve count (0 in every file)</td></tr>
+    <tr><td>0x3F</td><td>1</td><td>u8</td><td>Flags: bit 0 stores rotations as four f32 instead of a packed u32 (0 in every file)</td></tr>
+    <tr><td>0x40</td><td>4</td><td>f32</td><td>Translation range</td></tr>
+    <tr><td>0x44</td><td>4</td><td>f32</td><td>Scale range</td></tr>
+    <tr><td>0x48</td><td>4</td><td>f32</td><td>Time range; 8.5 (255 / 30) in every file</td></tr>
+    <tr><td>0x4C</td><td>4</td><td>f32</td><td>Curve value range</td></tr>
+    <tr><td>0x50</td><td>1</td><td>u8</td><td>Bytes per translation component (2 or 3)</td></tr>
+    <tr><td>0x51</td><td>1</td><td>u8</td><td>Bytes per scale component (2)</td></tr>
+    <tr><td>0x52</td><td>1</td><td>u8</td><td>Bytes per key time (1)</td></tr>
+    <tr><td>0x53</td><td>1</td><td>u8</td><td>Bytes per curve value (1)</td></tr>
+    <tr><td>0x54</td><td>-</td><td></td><td>Up to 0x80: leftovers from the export tool, never read</td></tr>
+  </tbody>
+</table>
+
+<h3>Tracks (0x10 bytes)</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Key count</td></tr>
+    <tr><td>0x04</td><td>4</td><td>off</td><td>Keys</td></tr>
+    <tr><td>0x08</td><td>1</td><td>u8</td><td>Bone index</td></tr>
+    <tr><td>0x09</td><td>1</td><td>u8</td><td>Channels: 0x1 rotation, 0x2 translation, 0x4 scale</td></tr>
+    <tr><td>0x0A</td><td>6</td><td>u8[6]</td><td>0</td></tr>
+  </tbody>
+</table>
+
+<p>A channel the track lacks keeps the skeleton's rest value (0x800c8f50).</p>
+
+<h3>Keys</h3>
+<p>Each key is packed as: the time; the rotation; three translation components; three scale components; with only the track's channels present. The stride is the time bytes plus 4 (or 16) plus 3 × translation bytes plus 3 × scale bytes. Each track's keys are padded to 4 bytes with <code>0xFE</code>. The packed rotation is a u32 in the platform's byte order; times, translations and scales are assembled from their bytes low byte first on every platform.</p>
+
+<ul>
+  <li><strong>Time</strong> (0x800c6dc0): <code>range × v / (2^(8n) − 1)</code>, clamped to the range, where n is the time byte count and range is the field at 0x48. With the files' 8.5 and one byte, a key byte is a frame number at 30 frames per second.</li>
+  <li><strong>Rotation</strong> (0x800c6bb0): the top two bits name the largest component, which is rebuilt; the other three are 10-bit fields, high bits first, each <code>(c − 0.5) × step − max</code> with <code>max = √0.5</code> and <code>step = 2 × max / 1023</code>. The quaternion is normalized afterwards.</li>
+  <li><strong>Translation</strong> (0x800c6f60): sign-magnitude. The low bits over their maximum, <code>v / (2^(8n−1) − 1)</code> in single precision, times <code>100 × range</code> (0x40), negated when the top bit is set: a value in centimetres.</li>
+  <li><strong>Scale</strong> (0x800c7430): the same, times the range at 0x44 without the 100.</li>
+</ul>
+
+<h3>Sampling</h3>
+<p>The key search (0x800c9360) finds the pair of keys around the time and interpolates with <code>u = (t − t0) / (t1 − t0)</code>. After the last key the segment runs to the duration (0x34): back to the first key when the clip loops, holding the last otherwise. Translations and scales interpolate as <code>a + u × (b − a)</code>. Rotations use a slerp when the dot product is negative (negate the first quaternion), blend linearly when within 1e-4 of each other, and otherwise slerp. Neither path renormalizes.</p>
+
+<h3>Curves (0x10 bytes)</h3>
+<p>Animated model parameters, matched against the <code>.gds</code> parameter table: u32 key count, off keys, u32 target name hash at 0x08, u8 target sub-index at 0x0C, runtime target index at 0x0D (set at load by 0x800f26f0), two zero bytes. A key is a time followed by a sign-magnitude value times the range at 0x4C. No file uses curves.</p>
+
+<div class="note">
+  <strong>Verified:</strong> Every key time, rotation, translation and scale in six <code>.animpack</code> files, 1,748,046 values in all, decoded bit-identically to the game's decoders (0x800c6dc0, 0x800c6bb0, 0x800c6f60, 0x800c7430).
+</div>
+</body>
+</html>

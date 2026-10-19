@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>An entry payload is either stored raw or wrapped in one or two zlib layers. PLZP is a simple wrapper; PIFF and PXC files are often stored as a bare zlib stream.</p>
+
+<h3>PLZP</h3>
+<pre>0   4   magic "PLZP"
+4   4   uncompressed size
+8   4   compressed size (= entry size - 12)
+12  ..  zlib stream</pre>
+<p>The zlib header is always <code>78 DA</code>. PLZP wraps textures, sounds, fonts, plates, some PNG and XML files, and the large track and scene files. Krazy Kart Racing's five fonts are PLZP inside PLZP.</p>
+
+<h3>Bare zlib</h3>
+<p>PIFF and PXC files are often stored as a plain zlib stream. CNK2 uses <code>78 9C</code> (level 6). The other games use <code>78 9C</code> and <code>78 DA</code>. Seventeen PIFF files and 56 of the 61 PXC files are double-wrapped: a PLZP whose payload is itself a bare zlib stream.</p>
+<p>Detect a bare zlib stream by a first byte of 0x78 and <code>(b0*256 + b1) % 31 == 0</code>, then confirm it inflates with no trailing data. No raw payload in any archive starts that way by accident.</p>
+
+<h3>Exact Compression Parameters</h3>
+<p>Getting every stream to re-compress bit for bit required recovering how the original tools called zlib:</p>
+<ul>
+  <li><strong>Level</strong> comes from the FLEVEL bits of the zlib header: <code>78 9C</code> means level 6, <code>78 DA</code> means level 9.</li>
+  <li><strong>memLevel</strong> is 9 (not zlib's default of 8). It matters for large streams.</li>
+  <li><strong>windowBits</strong> 15, default strategy, with one exception below.</li>
+  <li>The model, track and font writers fed zlib one file section at a time and called <code>deflate(Z_FULL_FLUSH)</code> at section boundaries. Each flush shows up as an empty stored block (<code>00 00 FF FF</code>).</li>
+  <li>The original zlib was version 1.2.4 or older. From 1.2.5.1 on, a full flush rewinds the sliding window to position 0, which makes the first bytes after the flush unmatchable. Old zlib kept the window position and only cleared the hash table.</li>
+  <li>Sometimes an empty fixed-Huffman block (10 bits) appears just before the empty stored block. That is old zlib behaviour when the 8 KB output buffer fills during the flush: the second <code>deflate</code> call emitted an extra empty block. It happens when the final data block before the flush is larger than about 8,192 bytes.</li>
+  <li>The Raging Thunder 2 font (<code>font02.fnt</code>) compressed its palette section with <code>Z_FILTERED</code> and switched back to the default strategy for the pixels. It is the only stream that needs this.</li>
+</ul>
+
+<div class="note">
+  <strong>Flush placement:</strong> For CNK2 models, a flush happens before any chunk whose total size is at least about 1 KB (1,032 bytes including the 8-byte chunk header), after enough bytes have accumulated (about 4.1 KB), and at the end of some FORM groups. This reproduces the flush layout of 95 of 110 CNK2 model and track streams. The game does not care where flushes are — any valid zlib stream works, so edited files can be compressed normally.
+</div>
+</body>
+</html>

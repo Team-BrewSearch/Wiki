@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p><code>.fkd</code> / PFNT fonts. Loader: 0x80ee9c0 in the DWSSK plugin; in Polarbit these are read by <code>cnk2tool.py</code>. A 64-byte header is followed by raw pixels.</p>
+
+<h3>File Layout</h3>
+<pre>0    4      "PFNT"
+4    u16    12 (size of the fixed header that follows)
+6    u8     0 in every font (meaning unknown)
+7    u8     Widest glyph, pixels
+8    u8     Ascent / baseline (smaller than the height)
+9    u8     Line height = atlas height
+10   u16    0 in every font (meaning unknown)
+12   u16    First character code
+14   u16    Last character code
+16   u16    Glyph count G
+18   u16[G] Character codes (UCS-2)
+..   G x 4  Glyph records { u16 x in atlas, u8 0, u8 width }
+..   u8     Pixel format: 8 = RGBA8888, 3 = 8 bits per pixel
+..   u8     Flags
+..   u16    Palette entry count P
+..   u16    Atlas width W
+..   u16    Atlas height H
+..   u32    0
+..   5      Only if flags & 0x80: { u8 1, u32 0 } (colour-key style record)
+..   P x 3  RGB palette
+..   ...    W x H pixels, top row first</pre>
+
+<p>Glyphs sit side by side in one horizontal strip; glyph <em>i</em> spans <code>x .. x+width</code> at full height.</p>
+
+<h3>Pixel Formats</h3>
+<p><strong>CNK2 (9) and KKR (5) fonts:</strong> RGBA8888 in R, G, B, A byte order, with flags 0x00 or 0x82.</p>
+<p><strong>CNK3D and RT2 fonts:</strong> format 3 (8 bits per pixel):</p>
+<ul>
+  <li>flags 0x38 and 0x78, no palette: one byte per pixel of coverage (alpha).</li>
+  <li>flags 0x18 (RT2) and 0x58, 256-entry palette: one byte per pixel, a palette index.</li>
+  <li>flags 0xDE, 35-entry palette: every byte is either below 35 or 224 and up. Read as 3 bits of alpha over 5 bits of palette index (<code>alpha = v >> 5</code>, <code>index = v & 31</code>), matching Nintendo DS-style A3I5 textures. Rests on a single sample.</li>
+</ul>
+</body>
+</html>

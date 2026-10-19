@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../script.js"></script>
+</head>
+<body>
+<p>Reference for the file formats of Polarbit's mobile racing engine, as found in seven <code>.vfs</code> archives across five games. The engine ships in <em>Crash Bandicoot Nitro Kart 2</em>, <em>Crash Bandicoot Nitro Kart 3D</em>, <em>Krazy Kart Racing</em>, <em>Reckless Getaway</em> and <em>Raging Thunder 2</em>.</p>
+
+<h2>File Formats</h2>
+<ul data-list></ul>
+
+<h2>Engine Generations</h2>
+<p>All five games run on Polarbit's mobile engine and share one container format. Two generations differ in their 3D content:</p>
+<div class="spec-grid">
+  <div class="label">CNK2, CNK3D, KKR</div><div>Use PIFF models and tracks, PNG or PVR textures, and PSND/PMOD audio. Store only name hashes — file names are recovered by hashing path-like strings found in the data.</div>
+  <div class="label">Getaway, RT2</div><div>Replace PIFF with the PXC scene graph, add texture-atlas "plates", GLSL shaders, and new string tables (FCOL). Store file names inside the archive.</div>
+</div>
+
+<h2>Archive List</h2>
+<table>
+  <thead><tr><th>Archive</th><th>Game</th><th>Size</th><th>Entries</th></tr></thead>
+  <tbody>
+    <tr><td><code>files/cbnk2/data.vfs</code></td><td>Crash Bandicoot Nitro Kart 2 (iOS, 2010)</td><td>73 MB</td><td>787</td></tr>
+    <tr><td><code>files/cbnk3d/data.vfs</code></td><td>Crash Bandicoot Nitro Kart 3D (iOS, 2008)</td><td>6.9 MB</td><td>426</td></tr>
+    <tr><td><code>files/kkr/data.vfs</code></td><td>Krazy Kart Racing</td><td>15.6 MB</td><td>649</td></tr>
+    <tr><td><code>files/rg/data.vfs</code></td><td>Reckless Getaway (iOS, 2011)</td><td>52.6 MB</td><td>288</td></tr>
+    <tr><td><code>files/rg/frontend.vfs</code></td><td>Reckless Getaway, menus/locale</td><td>581 KB</td><td>16</td></tr>
+    <tr><td><code>files/rg/shaders.vfs</code></td><td>Reckless Getaway, GLSL shaders</td><td>10.5 KB</td><td>36</td></tr>
+    <tr><td><code>files/rt2/Data.vfs</code></td><td>Raging Thunder 2 (iOS, 2010)</td><td>14.5 MB</td><td>309</td></tr>
+  </tbody>
+</table>
+
+<h2>Conventions</h2>
+<p>All integers are little-endian, with one exception noted on the <a href="texture/plates.html">plates page</a>. "Fixed" means a signed 32-bit 16.16 fixed-point number (divide by 65536). Several headers use OpenGL ES constants directly: 4 = <code>GL_TRIANGLES</code>, 5 = <code>GL_TRIANGLE_STRIP</code>, 5121 = <code>GL_UNSIGNED_BYTE</code>, 5123 = <code>GL_UNSIGNED_SHORT</code>, 5132 = <code>GL_FIXED</code>.</p>
+
+<h2>Content Overview</h2>
+<p>Assets are addressed by path hash inside FUFS containers, then unwrapped through zero, one or two zlib compression layers. Textures are either PNG (direct) or PVR (PowerVR). Models are PIFF for the older games and PXC for the 2011 games. Audio is PSND sound blocks or PMOD tracker modules. Strings live in LANG or FCOL tables, or as CSV/HXX sources in Getaway.</p>
+
+<div class="note">
+  <strong>Verified:</strong> A companion tool (<code>cnk2tool.py</code>) enforces every byte of every file: containers rebuild byte-for-byte, all 2,511 entries unwrap through compression layers, all 1,546 zlib streams re-compress to the exact original bytes, all 649 stored file names hash to their table entries, and every editable entry round-trips through conversion and back.
+</div>
+
+<p style="margin-top:0.8em;font-size:0.85rem;color:#64748b;">
+  <span class="badge">Info</span> This wiki is maintained as a reference for modders, researchers, and archivists.
+</p>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p>Localised text. One string table per language. Lookup: 0x800f5370.</p>
+
+<h3>File Layout</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>String count</td></tr>
+    <tr><td>0x04</td><td>-</td><td>records</td><td>0x10 bytes each</td></tr>
+  </tbody>
+</table>
+
+<h3>Record (0x10 bytes)</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Hash</td></tr>
+    <tr><td>0x04</td><td>4</td><td>off</td><td>Offset of the string from the start of the file</td></tr>
+    <tr><td>0x08</td><td>4</td><td>u32</td><td>0</td></tr>
+    <tr><td>0x0C</td><td>4</td><td>u32</td><td>A value that is the same for every record in a file</td></tr>
+  </tbody>
+</table>
+
+<p>The lookup only reads the first two words. It is a binary search that expects the hashes in descending order; a hash it can't find returns an empty string. Strings are NUL-terminated UTF-8, and identical strings share one copy.</p>
+</body>
+</html>

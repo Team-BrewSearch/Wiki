@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="../../script.js"></script>
+</head>
+<body>
+<p><code>.bog</code> is the name of the level database. Loader: 0x8008e730. The loader checks the header, relocates the file in place, and fills a 0x90-byte level table. No objects are created yet; the tie, shrub and entity code builds them from that table later.</p>
+
+<h3>File Header</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>char[4]</td><td>Magic <code>BOG </code></td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>Version; must be 0x48</td></tr>
+    <tr><td>0x08</td><td>4</td><td>u32</td><td>File size; 0xAC or less loads as an empty database</td></tr>
+    <tr><td>0x0C</td><td>4</td><td>u32</td><td>Hash; not read by the loader</td></tr>
+    <tr><td>0x10</td><td>4</td><td>u32</td><td>Copied to table +0x00</td></tr>
+    <tr><td>0x14</td><td>8</td><td>off, u32</td><td>A section with no known reader; table +0x04 and +0x08. Empty in every shipped file</td></tr>
+    <tr><td>0x1C</td><td>72</td><td>(off, u32)[18]</td><td>Sections 0 to 17 (table below)</td></tr>
+  </tbody>
+</table>
+
+<p>Every offset counts from the start of the file. Relocating one means adding the file's load address, and the loader leaves a zero offset at zero. The table slot is where the section's pointer goes; its count goes in the word after it.</p>
+
+<h3>Sections</h3>
+<table>
+  <thead><tr><th>#</th><th>Header</th><th>Plugin key</th><th>Record size</th><th>Loader relocates</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>0x1C</td><td><code>lights</code></td><td>0x18</td><td>None</td></tr>
+    <tr><td>1</td><td>0x24</td><td><code>spawners</code></td><td>0x58</td><td>0x4C template, 0x50 data</td></tr>
+    <tr><td>2</td><td>0x2C</td><td><code>components</code></td><td>0x18</td><td>0x04 defaults</td></tr>
+    <tr><td>3</td><td>0x34</td><td><code>classes</code></td><td>0x1C</td><td>0x04 component list (each word in that list), 0x10 entities</td></tr>
+    <tr><td>4</td><td>0x3C</td><td><code>templates</code></td><td>0x34</td><td>0x08 class, 0x24 spawners</td></tr>
+    <tr><td>5</td><td>0x44</td><td><code>entities</code></td><td>0x58</td><td>0x48 template, 0x4C data</td></tr>
+    <tr><td>6</td><td>0x4C</td><td><code>path_nodes</code></td><td>0xA8</td><td>None</td></tr>
+    <tr><td>7–9</td><td>0x54–0x6B</td><td></td><td></td><td>Not read; empty in every shipped file</td></tr>
+    <tr><td>10</td><td>0x6C</td><td><code>triggers</code></td><td>0x90</td><td>None</td></tr>
+    <tr><td>11</td><td>0x74</td><td><code>points</code></td><td>0x10</td><td>0x0C</td></tr>
+    <tr><td>12</td><td>0x7C</td><td><code>splines</code></td><td>0x1C</td><td>0x04 points, 0x08</td></tr>
+    <tr><td>13</td><td>0x84</td><td><code>tie_groups</code></td><td>0x14</td><td>0x0C ties</td></tr>
+    <tr><td>14</td><td>0x8C</td><td><code>ties</code></td><td>0x70 + 12n</td><td>None</td></tr>
+    <tr><td>15</td><td>0x94</td><td><code>shrub_layers</code></td><td>0x3C</td><td>0x0C shrubs, then 0x38 cells, only when 0x0C is nonzero</td></tr>
+    <tr><td>16</td><td>0x9C</td><td><code>shrub_cells</code></td><td>8</td><td>0x00 first shrub, 0x04 end</td></tr>
+    <tr><td>17</td><td>0xA4</td><td><code>shrubs</code></td><td>0x50 + 12n</td><td>None</td></tr>
+  </tbody>
+</table>
+
+<p>Some pointers depend on other counts. The tie group and tie pointers, and both tie counts, are set only when there is at least one tie group. The shrub layer, cell and shrub pointers are set only when there is at least one layer, and the points pointer only when there is at least one spline. A class's 0x04 and 0x10, a template's 0x08 and a spline's 0x04 are relocated even when they are zero.</p>
+
+<h3>Tie Group (0x14)</h3>
+<p>Hash, a <code>.gdt</code> hash (entry type 7), a <code>.col</code> hash (type 7, 0 for none), an offset to its ties, and a tie count. The tie loader (0x800f3580) writes the group's address into every tie's 0x40, then swaps 0x04 for the loaded model and 0x08 for the collision.</p>
+
+<h4>Tie Record</h4>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>64</td><td>f32[16]</td><td>World matrix</td></tr>
+    <tr><td>0x40</td><td>4</td><td>u32</td><td>Runtime: owning tie group</td></tr>
+    <tr><td>0x44</td><td>4</td><td>u8[4]</td><td>First byte 0 to 3, then <code>00 80 3F</code>; not read by the Wii code that walks ties</td></tr>
+    <tr><td>0x48</td><td>4</td><td>f32</td><td>LOD distance: the renderer draws LOD 1 once the camera is this far away</td></tr>
+    <tr><td>0x4C</td><td>4</td><td>f32</td><td>A second distance, usually twice 0x48</td></tr>
+    <tr><td>0x50</td><td>4</td><td>f32</td><td>8.0 in every file</td></tr>
+    <tr><td>0x54</td><td>4</td><td>u32</td><td>0</td></tr>
+    <tr><td>0x58</td><td>4</td><td>u32</td><td>RGBA colour, 0xFFFFFFFF in most ties</td></tr>
+    <tr><td>0x5C</td><td>4</td><td>u32</td><td>Instance hash</td></tr>
+    <tr><td>0x60</td><td>4</td><td>u32</td><td>Runtime: collision object (0x800dee30, freed by 0x800df2f0)</td></tr>
+    <tr><td>0x64</td><td>1</td><td>u8</td><td>Visibility region bit, 0 to 63</td></tr>
+    <tr><td>0x65</td><td>1</td><td>u8</td><td>Flags: bit 0 tests the region bit; bit 6 skips the collision object</td></tr>
+    <tr><td>0x66</td><td>1</td><td>u8</td><td>n, the number of 12-byte records after the tie</td></tr>
+    <tr><td>0x67</td><td>1</td><td>u8</td><td>0xFF</td></tr>
+    <tr><td>0x68</td><td>8</td><td>u32[2]</td><td>0</td></tr>
+  </tbody>
+</table>
+
+<p>Every loop over ties steps <code>0x70 + 12 × n</code> bytes. The hide group is a bit number in the instance's hidden-parts mask (instance + 0xD4). It is 0 for most draws and 1 to 6 for parts such as held items.</p>
+</body>
+</html>

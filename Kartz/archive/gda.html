@@ -5,44 +5,40 @@
 <script src="../../script.js"></script>
 </head>
 <body>
-<p>Every Virtuos DS racing game stores its assets in three files that travel together and are useless apart. The archive stem varies by game: <code>DWK.gda</code> holds the raw bytes, <code>DWK.gdf</code> the paths and <code>DWK.gdt</code> the byte ranges for Super Star Kartz, and Madagascar Kartz ships the same triple as <code>MAD.gda</code>, <code>MAD.gdf</code> and <code>MAD.gdt</code>. Entries are addressed by index: entry <em>n</em> takes its path from the GDF and its byte range from the GDT.</p>
+<p>Every Virtuos DS game stores its assets in three files that only work together: the <code>.gda</code> holds the bytes, the <code>.gdf</code> the paths and the <code>.gdt</code> the byte ranges. Super Star Kartz ships them as <code>DWK.gda</code>, <code>DWK.gdf</code> and <code>DWK.gdt</code>; Madagascar Kartz as <code>MAD.*</code>. Entry <em>n</em> takes its path from the GDF and its byte range from the GDT.</p>
 
-<h3>GDF - path table</h3>
+<h2>GDF: Path Table</h2>
 <table>
   <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
     <tr><td>0x00</td><td>4</td><td>u32</td><td>Entry count</td></tr>
-    <tr><td>0x04</td><td>count * 4</td><td>u32[count]</td><td>Offsets into the string pool below, one per entry, relative to the pool</td></tr>
-    <tr><td>var</td><td>var</td><td>char[]</td><td>Null-terminated ASCII paths, backslash-separated</td></tr>
+    <tr><td>0x04</td><td>4 * count</td><td>u32[count]</td><td>Path offsets, relative to the string pool that follows</td></tr>
+    <tr><td>var</td><td>var</td><td>char[]</td><td>String pool: null-terminated ASCII paths, backslash-separated</td></tr>
   </tbody>
 </table>
 
 <p>A path looks like <code>Models\Tracks\FarFarAway\FarFarAway.trk</code>.</p>
 
-<h3>GDT - offset/size table</h3>
+<h2>GDT: Range Table</h2>
 <table>
   <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
     <tr><td>0x00</td><td>4</td><td>u32</td><td>Always 0</td></tr>
-    <tr><td>0x04</td><td>4</td><td>u32</td><td>Entry count; retail files match the GDF count</td></tr>
-    <tr><td>0x08</td><td>count * 8</td><td>{u32 offset, u32 size}[]</td><td>Byte range of each entry inside the GDA</td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>Entry count, equal to the GDF count in retail files</td></tr>
+    <tr><td>0x08</td><td>8 * count</td><td>{u32 offset, u32 size}[]</td><td>Byte range of each entry inside the GDA</td></tr>
   </tbody>
 </table>
 
-<p>An entry is present only when <code>size &gt; 0</code> and <code>offset + size</code> fits inside the GDA. Anything else is an empty slot.</p>
+<p>An entry exists only when <code>size &gt; 0</code> and <code>offset + size</code> fits inside the GDA. Anything else is an empty slot.</p>
 
-<p>The plugin takes the effective count as the smallest of the GDF path count, the GDT's declared count, and the number of entries the GDT's own bytes can hold. It then keeps an entry for every index below that count, empty or not.</p>
+<h2>GDA: Data</h2>
+<p>One region per non-empty entry, with no header of its own. Each region is zero-padded to the archive's alignment. Both Kartz archives align to 32 bytes.</p>
 
-<h3>GDA - data</h3>
-<p>One contiguous region per GDT entry, with no header of its own. The writer pads each non-empty entry with zero bytes up to the archive's detected alignment boundary. The plugin detects the alignment from the entry offsets as the largest power of two from 4096 down to 4 that every non-zero offset shares, falling back to 32 when every offset is zero and to 4 when none fits. Both Kartz archives use 32 bytes.</p>
-
-<h3>Shared Content</h3>
-<p>The two Kartz archives point multiple GDT entries at the <strong>same</strong> GDA offset whenever their content is byte-identical: a driver's <code>player</code> and <code>ai</code> texture variants share one texture, two tracks' skyboxes share one zone mesh.</p>
-
-<p>The plugin writes this sharing back the same way. Saving rebuilds the <code>.gda</code> and the <code>.gdt</code>; the <code>.gdf</code> name table is read only. The writer hashes each entry's bytes, points every later byte-identical entry at the first copy, pads each non-empty entry to the detected alignment, and then rereads the rebuilt triple and checks every entry's bytes match what it intended to write.</p>
+<h2>Shared Content</h2>
+<p>The Kartz archives point several GDT entries at the <strong>same</strong> GDA offset whenever their bytes are identical: a driver's <code>player</code> and <code>ai</code> textures share one copy, and two tracks' skyboxes share one scenery mesh.</p>
 
 <table>
-  <thead><tr><th>Archive</th><th>Entries</th><th>Distinct offsets</th><th>Duplicate references</th><th>Bytes saved</th></tr></thead>
+  <thead><tr><th>Archive</th><th>Entries</th><th>Distinct offsets</th><th>Shared entries</th><th>Bytes saved</th></tr></thead>
   <tbody>
     <tr><td>Super Star Kartz <code>DWK.gda</code></td><td>1770</td><td>1443</td><td>327</td><td>941 KB</td></tr>
     <tr><td>Madagascar Kartz <code>MAD.gda</code></td><td>1377</td><td>1132</td><td>245</td><td>626 KB</td></tr>
@@ -50,7 +46,16 @@
 </table>
 
 <div class="note">
-  <strong>Note:</strong> The sharing is load-bearing. An archive rebuilt with a private copy per entry decodes correctly but corrupts the running game, dropping geometry and unrelated character, kart and UI assets. The engine appears to cache a loaded asset by its source GDA offset, so two entries sharing an offset load once rather than twice.
+  <strong>Note:</strong> The sharing is load-bearing. An archive rebuilt with a private copy per entry decodes fine but breaks the running game, which drops geometry and unrelated character, kart and UI assets. The engine appears to cache a loaded asset by its GDA offset, so entries that share an offset load once.
 </div>
+
+<h2>In OmegaStudio</h2>
+<ul>
+  <li>The entry count is the smallest of the GDF count, the GDT's stated count and the number of entries the GDT's bytes can hold. Every index below it becomes a row, empty or not.</li>
+  <li>A path whose offset falls outside the GDF reads as empty.</li>
+  <li>The alignment is the largest power of two from 4096 down to 4 that divides every non-zero offset; 32 when every offset is zero, 4 when nothing larger fits.</li>
+  <li>Saving rebuilds the GDA and GDT and leaves the GDF alone. Entries are written in index order, each padded to the alignment. An entry whose bytes match an earlier one (SHA-256, then a full compare) points at the earlier copy, so sharing survives edits. An empty entry gets size 0 at the current end of the data.</li>
+  <li>Before anything is written, the rebuilt pair is read back and every entry is compared with the bytes it should hold.</li>
+</ul>
 </body>
 </html>

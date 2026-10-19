@@ -5,42 +5,60 @@
 <script src="../../script.js"></script>
 </head>
 <body>
-<p>These are the archive formats outside <a href="../archive/gda.html">GDA</a>, <a href="../texture/5tx.html">5TX</a>, <a href="../track/trk.html">TRK</a>, the <a href="../track/displaylist.html">display list</a> and the <a href="../resource/rdf.html">RDF</a> pair. Each spec page states the layout, the parser checks and the round-trip result. Across all five games the plugin reads 86 <code>.col</code>, 588 <code>.zon</code>, 115 <code>.bpvs</code>, 86 <code>.trk</code>, 103 <code>.car</code>, 64 <code>.amd</code>, 43 <code>.ske</code> and 348 <code>.ani</code> files. The 29 <code>.col</code> and 29 <code>.bpvs</code> files Monster Jam ships empty are the only ones with nothing to read.</p>
+<p>What OmegaStudio can replace in a Virtuos archive, the rules that keep an edited track loadable, the measured round-trip results and the known limits. Saving always rebuilds the <a href="../archive/gda.html">GDA and GDT</a> with shared entries kept shared.</p>
 
-<h3>Spec Pages</h3>
+<h2>What Can Be Replaced</h2>
 <table>
-  <thead><tr><th>File</th><th>Contents</th><th>Spec</th></tr></thead>
+  <thead><tr><th>Asset</th><th>From</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>.col</code></td><td>Collision surface as a chain of cross-sections and sectors</td><td><a href="../track/col.html">COL</a></td></tr>
-    <tr><td><code>.bpvs</code></td><td>Per-sector run-length list of which track chunks to draw</td><td><a href="../track/bpvs.html">BPVS</a></td></tr>
-    <tr><td><code>.zon</code></td><td>Scenery bundle of chunks in the same format a track uses</td><td><a href="zon.html">ZON</a></td></tr>
-    <tr><td><code>.car</code></td><td>Vehicle or prop model with a wheel block in its tail</td><td><a href="car.html">CAR</a></td></tr>
-    <tr><td><code>.amd</code></td><td>Skinned character model, one chunk or bone-tagged parts</td><td><a href="amd.html">AMD</a></td></tr>
-    <tr><td><code>.ske</code></td><td>Skeleton of parented bones carrying rest transforms</td><td><a href="ske.html">SKE</a></td></tr>
-    <tr><td><code>.ani</code></td><td>Animation clip of one 4x4 matrix per frame per animated bone</td><td><a href="ani.html">ANI</a></td></tr>
+    <tr><td><a href="../texture/5tx.html">.5tx</a> texture</td><td>PNG</td><td>Re-encoded in the original pixel format</td></tr>
+    <tr><td><a href="../track/trk.html">.trk</a> track</td><td>glTF</td><td>Keeps the chunk layout; Monster Jam tracks are read-only</td></tr>
+    <tr><td><a href="zon.html">.zon</a> scenery</td><td>glTF</td><td>Trailer copied through</td></tr>
+    <tr><td><a href="car.html">.car</a> vehicle or prop</td><td>glTF</td><td>Tail and wheels copied through</td></tr>
+    <tr><td><a href="amd.html">.amd</a> character</td><td>glTF</td><td>Needs the <code>.ske</code> beside it</td></tr>
+    <tr><td><a href="ske.html">.ske</a> skeleton</td><td>glTF</td><td>Keeps its record size</td></tr>
+    <tr><td><a href="ani.html">.ani</a> clip</td><td>glTF</td><td>Frame rate read from the key spacing</td></tr>
+    <tr><td><a href="../track/col.html">.col</a> collision</td><td>glTF</td><td>Matched by geometry; the sector count is fixed</td></tr>
+    <tr><td>Any entry</td><td>Raw bytes</td><td>Written as given</td></tr>
   </tbody>
 </table>
 
-<h3>Verified</h3>
+<h2>glTF Conventions</h2>
 <ul>
-  <li>Every file the plugin reads parses and re-serialises to the bytes it was read from.</li>
-  <li>Across all five games the host glTF codec round trips 57 collision surfaces, 103 vehicles, 64 characters, 43 skeletons, 668 animations, 54 of the 57 tracks the plugin writes, and 576 of 588 scenery models.</li>
-  <li>Every byte is accounted for in the seven formats: 742,140 bytes of <code>.col</code>, 192,912 of <code>.zon</code>, 233,601 of <code>.bpvs</code>, 184,368 of <code>.car</code>, 656,796 of <code>.amd</code>, 26,132 of <code>.ske</code> and 1,331,840 of <code>.ani</code>.</li>
-  <li>Nine format detectors over 1,433 samples agree except for one loose <code>.trk</code> match that the detection order settles.</li>
+  <li>A node or mesh named <code>chunk_&lt;n&gt;</code> goes to chunk, model or part <em>n</em>. Without the name, track triangles go to the nearest chunk position and everything else goes to the first chunk.</li>
+  <li>A joint named <code>bone&lt;N&gt;</code> binds to skeleton bone <em>N</em>.</li>
+  <li>OmegaStudio's exports store each primitive's block list, texcoord flags and group breaks in its extras as <code>virtuosBlocks</code>, <code>virtuosTexcoordEmit</code> and <code>virtuosGroupBreaks</code> (<code>kartz*</code> also reads), so an unedited model rebuilds with the strips it came with.</li>
+  <li>UVs are normalised on export and scaled back to texels by the bound texture's size on import.</li>
 </ul>
 
-<h3>Editing a Track</h3>
-<p><code>.bpvs</code> and the <a href="../track/trk.html">TRK tail sections</a> are keyed by chunk index rather than by geometry, so they stay valid as long as a track keeps its chunk count, its primary and detail split, and its per-index positions. A different chunk layout invalidates both: a chunk 5 covering a different world region than the original chunk 5 produces per-chunk visual corruption and rasterizer crashes.</p>
-<p>A <code>.col</code> can be replaced from glTF. The plugin rewrites the values it can reproduce from the geometry and carries the rest through untouched. It does not rewrite the sector distance chain, which accumulates in link order rather than table order.</p>
+<h2>Editing a Track</h2>
+<p>The <a href="../track/bpvs.html">.bpvs</a> and the <a href="../track/trk.html">TRK tail sections</a> are keyed by chunk index, not by geometry. They stay valid only while a track keeps its chunk count, its primary and detail split and each chunk's position. A different layout breaks both: a chunk 5 that covers a different part of the world than the original chunk 5 gives per-chunk visual corruption and rasteriser crashes. That is why a track import keeps the original layout.</p>
+<p>The <code>.col</code> is not regenerated when a track changes. Replace it separately; the writer rebuilds what it can derive from the geometry, copies the rest, and never rewrites the sector distance chain, which accumulates in link order rather than table order.</p>
 
-<h3>Known Limits</h3>
+<h2>Round-Trip Results</h2>
+<table>
+  <thead><tr><th>Format</th><th>Read and re-serialised</th><th>Unedited glTF round trip</th></tr></thead>
+  <tbody>
+    <tr><td><code>.trk</code></td><td>86 of 86</td><td>54 of the 57 tracks the plugin can write</td></tr>
+    <tr><td><code>.col</code></td><td>86 of 86 (29 empty)</td><td>57 of 57 non-empty</td></tr>
+    <tr><td><code>.bpvs</code></td><td>115 of 115</td><td>-</td></tr>
+    <tr><td><code>.zon</code></td><td>588 of 588</td><td>576 of 588 byte for byte</td></tr>
+    <tr><td><code>.car</code></td><td>103 of 103</td><td>103 of 103</td></tr>
+    <tr><td><code>.amd</code></td><td>64 of 64</td><td>64 of 64</td></tr>
+    <tr><td><code>.ske</code></td><td>43 of 43</td><td>43 of 43 byte for byte</td></tr>
+    <tr><td><code>.ani</code></td><td>348 of 348</td><td>All, at 8, 12, 30 and 60 fps</td></tr>
+  </tbody>
+</table>
+
+<h2 id="limits">Known Limits</h2>
 <ul>
-  <li>A Monster Jam track cannot be written back. Its chunks use the wide header, and what places a chunk rather than a position from the table has not been worked out. Reading, drawing and exporting work.</li>
-  <li>Monster Jam ships no collision or visibility: its 29 <code>.col</code> files are zero bytes and its 29 <code>.bpvs</code> files are a 12-byte stub.</li>
-  <li>Nine files come back reordered: three Hot Wheels tracks, one Madagascar Kartz scenery model, one Hot Wheels and one Pimp My Ride scenery model, and three Monster Jam ones.</li>
-  <li>Six Monster Jam scenery models lose up to 24 units of position fidelity when rebuilt.</li>
-  <li>In the two-Kartz character set, 43 of 49 <code>.amd</code> files come back byte for byte and the other six differ by at most 0.0014 units, from 1/4096 grid rounding through the rest-pose transform on the deepest bone chains.</li>
-  <li>The twelve bytes an <code>.amd</code> keeps per part are still unread, so the plugin copies them through unchanged.</li>
+  <li>Monster Jam tracks cannot be written back. Their chunks use the wide header, and what places a wide chunk, rather than a position from the table, is not worked out. Reading, drawing and exporting work.</li>
+  <li>Monster Jam ships no collision or visibility: its 29 <code>.col</code> files are zero bytes and its 29 <code>.bpvs</code> files are 12-byte stubs.</li>
+  <li>Nine files come back reordered from glTF: three Hot Wheels tracks, and six scenery models (one from Madagascar Kartz, one each from Hot Wheels and Pimp My Ride, three from Monster Jam).</li>
+  <li>Six Monster Jam scenery models lose up to 24 units of position accuracy when rebuilt.</li>
+  <li>Six of the 49 Kartz <code>.amd</code> files differ after a round trip by at most 0.0014 units, from 1/4096 grid rounding through the rest pose on the deepest bone chains.</li>
+  <li>The 12 bytes an <code>.amd</code> keeps per part, and the 12 bytes per model in a <code>.zon</code> trailer, are not decoded and are copied through unchanged.</li>
+  <li>In a Pimp My Ride chunk with prefix words, the reader and writer count texture reference offsets from different points (see <a href="../track/trk.html">TRK</a>).</li>
 </ul>
 </body>
 </html>

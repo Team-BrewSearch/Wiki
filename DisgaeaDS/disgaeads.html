@@ -5,30 +5,34 @@
 <script src="../script.js"></script>
 </head>
 <body>
-<p>Welcome to the <strong>BrewSearch Reverse Engineering Wiki</strong> - a clean reference for the file formats used in Nippon Ichi Software's <em>Disgaea DS</em>.</p>
+<p>File formats of Nippon Ichi Software's <em>Disgaea DS</em>. The game keeps most of its data in two archive types, <code>DSARC FL</code> and <code>DSARCIDX</code>, and its music in Nintendo's standard SDAT formats wrapped in a custom container.</p>
+
+<div class="note">
+  <strong>Sources:</strong> OmegaStudio has no Disgaea plugin, so nothing here is checked against it. <a href="archive/dsarcfl.html">DSARC FL</a> and <a href="archive/dseq.html">DSEQ</a> are documented from the retail ROM; the other pages point to the external specifications listed on each.
+</div>
 
 <h2>File Formats</h2>
 <ul data-list></ul>
 
 <h2>ROM Structure</h2>
-<p>High-level overview of the <code>Disgaea DS</code> ROM layout. File tree adapted from <a href="https://disgaea.rustedlogic.net/Disgaea_1/DS/File_tree" target="_blank" rel="noopener">rustedlogic.net</a>.</p>
+<p>Adapted from the <a href="https://disgaea.rustedlogic.net/Disgaea_1/DS/File_tree" target="_blank" rel="noopener">rustedlogic.net file tree</a>. Brackets give the container or format of each file.</p>
 
 <div class="file-tree">[root]
 ├── ThumbBg.dat [DSARCIDX]
-│   └── Thubg*.imy (19 files) [IMY] - Savefile thumbnails
+│   └── Thubg*.imy (19 files) [IMY] - save file thumbnails
 ├── bg.dat [DSARCIDX]
 │   └── bg*.mpb (117 files) [MPB] (MAP, IMY)
 ├── bgm.dat{,.tbl} [DSARCFL]
 │   └── bgm__.msnd (33 files) [DSEQ]
 ├── bu.dat [DSARCIDX]
 │   └── bu_.mpb (101 files) [MPB] (MAP, IMY)
-├── ch_*.amd (234 files) - Char/class animation data
-├── ch_*.amt (234 files) - Char/class animation data
-├── chclut.bin - Sprite color LUTs (for sprts.bin)
-├── chtex.bin - Sprite metadata (for sprts.bin)
+├── ch_*.amd (234 files) - character and class animation data
+├── ch_*.amt (234 files) - character and class animation data
+├── chclut.bin - sprite colour tables for sprts.bin
+├── chtex.bin - sprite metadata for sprts.bin
 ├── demoDbg.dat [DSARCIDX]
-│   └── file* (280 files) - ASCII text (debug text)
-├── dspack.dat [DSARCIDX] - (start.dat for DS)
+│   └── file* (280 files) - ASCII debug text
+├── dspack.dat [DSARCIDX] - the DS counterpart of start.dat
 │   ├── back.imy [IMY]
 │   ├── base.dso [DSO] (DSARCIDX)
 │   │   ├── base.dsm [DSM]
@@ -40,9 +44,9 @@
 │   │   ├── enn.dsm [DSM]
 │   │   └── ennoe__.imy (2 files) [IMY]
 │   ├── enn.imy [IMY]
-│   ├── establish_.imy (23 files) [IMY] - Top screen Settings
-│   ├── helpbg*.imy (7 files) [IMY] - Top screen Help
-│   ├── loading*.imy (6 files) [IMY] - Loading screen clock-Prinny
+│   ├── establish_.imy (23 files) [IMY] - top screen settings
+│   ├── helpbg*.imy (7 files) [IMY] - top screen help
+│   ├── loading*.imy (6 files) [IMY] - loading screen Prinny clock
 │   ├── mgate.dso [DSO] (DSARCIDX)
 │   │   ├── mgate.dsm [DSM]
 │   │   └── mgateoe_*.imy (4 files) [IMY]
@@ -54,9 +58,9 @@
 │   ├── taiho2.dso [DSO] (DSARCIDX)
 │   │   ├── taiho2.dsm [DSM]
 │   │   └── taiho2oe_*.imy (4 files) [IMY]
-│   ├── titdemo{3,4,5}.imy (3 files) [IMY] - Titlescreen opening
+│   ├── titdemo{3,4,5}.imy (3 files) [IMY] - title screen opening
 │   ├── waku3.imy [IMY]
-│   └── wbg*.imy (17 files) [IMY] - Top-screen titlescreen logo
+│   └── wbg*.imy (17 files) [IMY] - top screen title logo
 ├── efctobj.dat [DSARCIDX]
 │   └── effect_.dsm (133 files) [DSM]
 ├── efcttex.dat [DSARCIDX]
@@ -64,42 +68,42 @@
 ├── mapobjs.dat [DSARCIDX]
 │   └── mp_o_.dsm (234 files) [DSM]
 ├── maptex.dat [DSARCIDX]
-│   └── mp_{t,prd}*.imy (785 files) [IMY] - Map textures
+│   └── mp_{t,prd}*.imy (785 files) [IMY] - map textures
 ├── mpds.dat [DSARCIDX]
-│   └── mp*.mpds (198 files) [MPDS] - Map files (compressed)
-├── mpds.lst - CSV (filename, mapID)
+│   └── mp*.mpds (198 files) [MPDS] - compressed maps
+├── mpds.lst - CSV of file name and map ID
 ├── msgvo.dat{,.tbl} [DSARCFL]
 │   └── _.strm (173 files) [STRM]
 ├── nafnt.fnt
 ├── objtex.dat [DSARCIDX]
-│   └── mp_o*_*.imy (646 files) [IMY] - Map object textures
+│   └── mp_o*_*.imy (646 files) [IMY] - map object textures
 ├── rmaps.dat [DSARCIDX]
-│   └── 20*.rmd (72 files) - Item world randomized maps
-├── script.dat - Scripting
+│   └── 20*.rmd (72 files) - Item World random maps
+├── script.dat - scripting
 ├── se.dat{,.tbl} [DSARCFL]
-│   ├── ___.se (128 files) [SWAV] - Sound effects
-│   └── yrah_.swav (4 files) (empty)
+│   ├── ___.se (128 files) [SWAV] - sound effects
+│   └── yrah_.swav (4 files) - empty
 ├── song.dat{,.tbl} [DSARCFL]
 │   ├── bgm10.msnd [DSEQ]
 │   └── song_.msnd (11 files) [DSEQ]
-├── sprts.bin - Raw sprite data (use chtex.bin to parse)
-├── sys9.imy [IMY] - Tileset for topscreen (map)
+├── sprts.bin - raw sprite data, read through chtex.bin
+├── sys9.imy [IMY] - top screen map tileset
 ├── table.dat [DSARCIDX]
-│   ├── char.dat - Character/class data
-│   ├── charhelp.dat - Class help description
-│   ├── dungeon.dat - Gatekeeper warp data
+│   ├── char.dat - characters and classes
+│   ├── charhelp.dat - class help text
+│   ├── dungeon.dat - Gatekeeper warps
 │   ├── ge.dat - Geo effects
-│   ├── geocube.dat - Geocube effects (multiplayer)
-│   ├── habit.dat - Item inhabitants
-│   ├── hospital.dat - Hospital awards
-│   ├── magic.dat - Specials/spells
-│   ├── mitem.dat - Items
-│   ├── musicshop.dat - Song list
-│   ├── name.dat - Names for randomizer
-│   ├── thief.dat - Stat stealing entries
+│   ├── geocube.dat - Geo Cube effects (multiplayer)
+│   ├── habit.dat - Item World inhabitants
+│   ├── hospital.dat - hospital rewards
+│   ├── magic.dat - specials and spells
+│   ├── mitem.dat - items
+│   ├── musicshop.dat - song list
+│   ├── name.dat - names for the randomiser
+│   ├── thief.dat - stat stealing
 │   ├── wish.dat - Dark Assembly bills
-│   └── zukan.dat - Bestiary entries
-├── talk.dat - Dialogue + scripting
+│   └── zukan.dat - bestiary
+├── talk.dat - dialogue and scripting
 ├── uwbg*.mpb (12 files) [MPB] (MAP, IMY)
 ├── voice.dat{,.tbl} [DSARCFL]
 │   ├── ___.se (3 files) [SWAV]
@@ -107,11 +111,7 @@
 ├── waku{,2,3}.imy (3 files) [IMY]
 └── wbg{,2,3}.imy (3 files) [IMY]</div>
 
-<p style="margin-top:0.8em;font-size:0.85rem;color:#64748b;">
-  <span class="badge">Info</span> This wiki is maintained as a reference for modders, researchers, and archivists.
-</p>
-<p style="font-size:0.85rem;color:#64748b;">
-  <span class="badge">Verified</span> DSARCFL and DSEQ archive formats are documented from retail ROM analysis. Format specs are not implemented in the OmegaStudio reference reader; they are documented from external sources (NitroStudio2, GBATEK, rustedlogic.net).
-</p>
+<h2>In OmegaStudio</h2>
+<p>The Nintendo plugin opens the ROM itself: every file in it can be extracted or replaced, and the header and banner can be edited. The archives and formats on these pages show as raw files.</p>
 </body>
 </html>

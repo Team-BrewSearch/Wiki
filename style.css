@@ -131,14 +131,6 @@ a:hover {
     font-size: 1.4rem;
     line-height: 1;
 }
-.sidebar-brand .brand-sub {
-    font-size: 0.7rem;
-    font-weight: 400;
-    opacity: 0.5;
-    display: block;
-    margin-top: 1px;
-    letter-spacing: 0.02em;
-}
 
 .sidebar-nav {
     padding: 12px 0 20px 0;
@@ -252,25 +244,6 @@ a:hover {
     transition: margin var(--transition);
 }
 
-.page {
-    display: none;
-    animation: fadeIn 0.25s ease;
-}
-.page.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 .page-header {
     margin-bottom: 28px;
     padding-bottom: 16px;
@@ -323,17 +296,6 @@ a:hover {
 .page-content li {
     margin-bottom: 0.3em;
 }
-.page-content blockquote {
-    border-left: 4px solid var(--primary);
-    padding: 0.6em 1.2em;
-    margin: 1em 0;
-    background: var(--bg);
-    border-radius: 0 var(--radius) var(--radius) 0;
-    color: var(--text-secondary);
-}
-.page-content blockquote p:last-child {
-    margin-bottom: 0;
-}
 
 .page-content code {
     font-family: var(--font-mono);
@@ -343,6 +305,7 @@ a:hover {
     border-radius: 4px;
     border: 1px solid var(--code-border);
     color: #1e293b;
+    overflow-wrap: break-word;
 }
 .page-content pre {
     font-family: var(--font-mono);
@@ -383,12 +346,6 @@ a:hover {
 }
 .page-content table tr:nth-child(even) {
     background: rgba(241, 245, 249, 0.4);
-}
-
-.page-content hr {
-    border: none;
-    border-top: 2px solid var(--border);
-    margin: 2em 0;
 }
 
 .page-content .file-tree {
@@ -457,7 +414,7 @@ a:hover {
     }
     .main {
         margin-left: 0;
-        padding: 24px 20px 40px 20px;
+        padding: 68px 20px 40px 20px;
     }
     .page-header h1 {
         font-size: 1.6rem;
@@ -469,6 +426,10 @@ a:hover {
         font-size: 0.7rem;
         padding: 0.8em 1em;
     }
+    .page-content table {
+        display: block;
+        overflow-x: auto;
+    }
     .sidebar-open .main {
         filter: blur(2px);
         pointer-events: none;
@@ -478,7 +439,7 @@ a:hover {
 
 @media (max-width: 480px) {
     .main {
-        padding: 16px 14px 32px 14px;
+        padding: 64px 14px 32px 14px;
     }
     .page-header h1 {
         font-size: 1.3rem;
@@ -532,12 +493,6 @@ a:hover {
         padding: 20px !important;
         max-width: 100% !important;
     }
-    .page {
-        display: block !important;
-    }
-    .page:not(.active) {
-        display: none !important;
-    }
     .page-content pre {
         background: #f1f5f9 !important;
         color: #0f172a !important;
@@ -550,10 +505,8 @@ a:hover {
 }
 
 /* ── motion & focus ── */
-.page-header h1:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 4px;
-    border-radius: 2px;
+.main:focus {
+    outline: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

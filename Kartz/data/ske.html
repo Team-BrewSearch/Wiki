@@ -5,39 +5,50 @@
 <script src="../../script.js"></script>
 </head>
 <body>
-<p>A <code>.ske</code> holds the skeleton a character model and its animation clips use. It has two record sizes, and the plugin detects which one a file uses. The layout below is the narrow shape the two Kartz games use.</p>
+<p>A <code>.ske</code> holds the skeleton a character's <a href="amd.html">model</a> and <a href="ani.html">clips</a> share. Bones come in two record sizes: 68 bytes in the Kartz games, 132 bytes in the later ones.</p>
 
-<h3>Narrow Layout</h3>
-<pre>+0x00  u32    bone count
-+0x04  u32    8, the size of this header
-bones, 68 bytes each:
-  +0x00  i32     parent index, -1 at the root and always lower than the bone's own index
-  +0x04  i32[16] the bone's rest transform, a row-major 4x4 matrix in 20.12</pre>
+<h2>Layout</h2>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>0x00</td><td>4</td><td>u32</td><td>Bone count</td></tr>
+    <tr><td>0x04</td><td>4</td><td>u32</td><td>8, the header size</td></tr>
+    <tr><td>0x08</td><td>68 or 132 each</td><td>bone[]</td><td>Bones</td></tr>
+  </tbody>
+</table>
 
-<p>The parser accepts a narrow file only when its length is exactly <code>8 + 68 * bones</code>, the bone count is between 1 and 1024, the header size word is 8, a parent index is either -1 or less than the bone's own index, and every bone matrix keeps the fourth column at <code>(0, 0, 0, 4096)</code>.</p>
+<h3>Bone (68 bytes)</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>+0x00</td><td>4</td><td>i32</td><td>Parent index, -1 for the root, always lower than the bone's own index</td></tr>
+    <tr><td>+0x04</td><td>64</td><td>i32[16]</td><td>Rest transform relative to the parent, row-major 4x4, 20.12</td></tr>
+  </tbody>
+</table>
 
-<p><code>size == 8 + 68 * bones</code> holds for all 28 two-Kartz skeletons. Across their 381 bones the fourth column is always correct, the three rotation rows are always unit length, each file has exactly one root, and no bone's parent comes after it.</p>
+<h3>Bone (132 bytes)</h3>
+<table>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>+0x00</td><td>4</td><td>i32</td><td>Parent index, as above</td></tr>
+    <tr><td>+0x04</td><td>64</td><td>i32[16]</td><td>Placed rest transform, row-major 4x4, 20.12</td></tr>
+    <tr><td>+0x44</td><td>64</td><td>i32[16]</td><td>The transform back into the parent, same form</td></tr>
+  </tbody>
+</table>
 
-<h3>Wide Layout</h3>
-<pre>+0x00  u32    bone count
-+0x04  u32    8, the size of this header
-bones, 132 bytes each:
-  +0x00  i32      parent index, -1 at the root and always lower than the bone's own index
-  +0x04  i32[16]  the bone's placed rest transform, a row-major 4x4 matrix in 20.12
-  +0x44  i32[16]  the transform that takes the bone back into its parent, in the same 20.12 form</pre>
+<p>A 68-byte bone stores the step from its parent, so its world transform is its own matrix chained up through every parent. A 132-byte bone stores itself already placed, so its first matrix is the world transform. Both shapes give the same rest pose.</p>
 
-<p>The parser accepts the wide shape only when the file length is exactly <code>8 + 132 * bones</code>, with the same bone-count, header-size and parent-index checks. It also requires the fourth column of the first matrix and the fourth column of the second matrix to be <code>(0, 0, 0, 4096)</code>.</p>
+<p>The fourth column of every matrix is <code>(0, 0, 0, 4096)</code>. Across the 381 bones of the 28 Kartz skeletons the three rotation rows are always unit length, each file has exactly one root, and no parent comes after its child.</p>
 
-<h3>Transform Chain</h3>
-<p>A narrow record stores the step from the parent and the parser chains it up the parents to get the bone's world transform. A wide record stores the bone already placed, so the parser uses the first matrix as the world transform. Reading either shape gives the same rest pose, and writing one back keeps the shape it came in.</p>
+<h2>Up Axis</h2>
+<p>A skeleton stands in the game's own frame, with up on the third axis. The viewport and glTF put up on the second, so OmegaStudio turns every rest transform a quarter turn about X on the way out (<code>(x, y, z)</code> becomes <code>(x, z, -y)</code>) and back on the way in. The turn is applied once in the skeleton reader and shared by the placed mesh, joint binds, posed frames, the model writer and animation roots.</p>
 
-<p>A skeleton stands in the game's own frame, in which the character's up axis is the third one. Both the viewport and glTF put up on the second axis, so the parser turns every rest transform a quarter turn about x for its consumers and the same quarter turn back when it writes. The turn is applied once in the skeleton model and used by the baked mesh, joint binds, posed frames, model writer and animation roots.</p>
-
-<h3>Verification</h3>
+<h2>In OmegaStudio</h2>
 <ul>
-  <li>A narrow <code>.ske</code> file also satisfies the loose <code>.trk</code> header test, so the plugin asks the stricter skeleton test first.</li>
-  <li>Every skeleton the plugin reads re-serialises to the bytes it was read from: 43 files across the five games.</li>
-  <li>All 43 skeleton imports across the five games come back byte-identical through glTF, as do all 49 across the two-Kartz pair.</li>
+  <li>The file is exactly <code>8 + 68 * bones</code> or <code>8 + 132 * bones</code> bytes, with 1 to 1024 bones, a header size of 8, every parent either -1 or lower than its bone, and the fourth column of every matrix (both, for 132-byte bones) equal to <code>(0, 0, 0, 4096)</code>. The 68-byte shape is tried first.</li>
+  <li>A 68-byte <code>.ske</code> also passes the looser <code>.trk</code> test, so the skeleton test runs first.</li>
+  <li>Writing keeps the record size the file came in. Joints export as <code>bone0</code>, <code>bone1</code> and so on.</li>
 </ul>
+<p>All 43 skeletons across the five games re-serialise to their original bytes and come back byte for byte through glTF.</p>
 </body>
 </html>

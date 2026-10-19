@@ -17,8 +17,8 @@
 
     const SITE = {
         brand: 'BrewSearch Reverse Engineering Wiki',
-        sub: 'Reverse engineering documentation for games',
-        description: 'BrewSearch Reverse Engineering Wiki - reverse engineering documentation for game file formats and game internals.',
+        sub: 'File formats and internals of the games we take apart',
+        description: 'BrewSearch Reverse Engineering Wiki: file format documentation for games, checked against OmegaStudio.',
         icon: '\u{1F4D6}',
         themeColor: '#0e1a2b'
     };
@@ -28,402 +28,201 @@
             name: 'Disgaea DS',
             dir: 'DisgaeaDS',
             home: 'disgaeads.html',
-            sub: 'Disgaea DS reverse engineering documentation',
-            blurb: 'file formats, ROM structure, and reverse engineering notes',
+            sub: 'Nintendo DS file formats',
+            blurb: 'audio archives, Nintendo sound formats, images, maps and the ROM tree',
             pages: [
-                {
-                    file: 'archive/dsarcfl.html',
-                    label: 'DSARCFL',
-                    tag: 'archive',
-                    sub: 'DSARC FL archive format specification',
-                    blurb: 'archive container for audio / music / sound effects'
-                },
-                {
-                    file: 'archive/dseq.html',
-                    label: 'DSEQ',
-                    tag: 'music',
-                    sub: 'Music archive format (.msnd)',
-                    blurb: 'music archive bundling SSEQ + SBNK + SWAR'
-                },
-                {
-                    file: 'audio/sbnk.html',
-                    label: 'SBNK',
-                    tag: 'bank',
-                    sub: 'Sound bank - instrument mapping',
-                    blurb: 'sound bank mapping instruments to samples'
-                },
-                {
-                    file: 'audio/sseq.html',
-                    label: 'SSEQ',
-                    tag: 'sequence',
-                    sub: 'Sequenced instruction format for music',
-                    blurb: 'sequenced instruction format for music'
-                },
-                {
-                    file: 'audio/strm.html',
-                    label: 'STRM',
-                    tag: 'stream',
-                    sub: 'Nintendo DS streamed audio',
-                    blurb: 'Nintendo DS streamed audio (used for sound effects)'
-                },
-                {
-                    file: 'audio/swar.html',
-                    label: 'SWAR',
-                    tag: 'wave archive',
-                    sub: 'Wave archive containing SWAV files',
-                    blurb: 'wave archive containing SWAV files'
-                },
-                {
-                    file: 'audio/swav.html',
-                    label: 'SWAV',
-                    tag: 'wave',
-                    sub: 'Nintendo DS wave audio container',
-                    blurb: 'Nintendo DS wave audio container'
-                },
-                {
-                    file: 'compression/imy.html',
-                    label: 'IMY',
-                    tag: 'image',
-                    sub: 'Compressed image format',
-                    blurb: 'compressed image format'
-                },
-                {
-                    file: 'map/mpd.html',
-                    label: 'MPD',
-                    tag: 'map',
-                    sub: 'Tile-based map data',
-                    blurb: 'tile-based map data'
-                },
-                {
-                    file: 'map/mpds.html',
-                    label: 'MPDS',
-                    tag: 'compressed',
-                    sub: 'Compressed MPD map file',
-                    blurb: 'compressed MPD map file'
-                }
+                { file: 'archive/dsarcfl.html', label: 'DSARC FL', tag: 'archive',
+                  sub: 'Named-file archive',
+                  blurb: 'the named-file archive behind every audio .dat' },
+                { file: 'archive/dseq.html', label: 'DSEQ', tag: 'music',
+                  sub: 'Music container (.msnd)',
+                  blurb: 'one piece of music: an SSEQ, its SBNK and its SWAR' },
+                { file: 'audio/sbnk.html', label: 'SBNK', tag: 'bank',
+                  sub: 'Instrument bank',
+                  blurb: 'maps instruments and key ranges to SWAR samples' },
+                { file: 'audio/sseq.html', label: 'SSEQ', tag: 'sequence',
+                  sub: 'Music sequence',
+                  blurb: 'compiled note and control commands for all music' },
+                { file: 'audio/strm.html', label: 'STRM', tag: 'stream',
+                  sub: 'Streamed audio',
+                  blurb: 'streamed audio, used only in msgvo.dat' },
+                { file: 'audio/swar.html', label: 'SWAR', tag: 'wave archive',
+                  sub: 'Wave archive',
+                  blurb: 'the sample set an SBNK plays from' },
+                { file: 'audio/swav.html', label: 'SWAV', tag: 'wave',
+                  sub: 'Single wave sample',
+                  blurb: 'one PCM or IMA-ADPCM sample: sound effects and voice clips' },
+                { file: 'compression/imy.html', label: 'IMY', tag: 'image',
+                  sub: 'Compressed image',
+                  blurb: 'compressed images for nearly every texture and screen' },
+                { file: 'map/mpd.html', label: 'MPD', tag: 'map',
+                  sub: 'Tile-based map',
+                  blurb: 'the tile-based map format' },
+                { file: 'map/mpds.html', label: 'MPDS', tag: 'compressed',
+                  sub: 'Compressed MPD map',
+                  blurb: 'compressed MPD, used by all 198 maps' }
             ]
         },
         {
             name: 'DreamWorks Super Star Kartz',
             dir: 'DWSSK',
             home: 'dwssk.html',
-            sub: 'DreamWorks Super Star Kartz (PS3, Xbox 360, Wii, 3DS) reverse engineering documentation',
-            blurb: 'WAD containers, models, animation, collision, navigation, level databases, and data tables',
+            sub: 'PlayStation 3, Xbox 360, Wii and 3DS file formats',
+            blurb: 'WAD containers, textures, models, animation, collision, navigation, level databases and data tables',
             pages: [
-                {
-                    file: 'wad/wad.html',
-                    label: 'WAD',
-                    tag: 'container',
-                    sub: 'HIG! container format with hash buckets and typed entries',
-                    blurb: 'the HIG! WAD container: header, hash buckets, entry headers, type lists, and lookup'
-                },
-                {
-                    file: 'models/gd.html',
-                    label: 'Models',
-                    tag: 'models',
-                    sub: 'Shared header, materials, shaders, textures and per-kind mesh layouts',
-                    blurb: 'gdw world, gds skinned, gdi instanced, and gdt/gdt.piece tie models with shared header, materials, and vertex formats'
-                },
-                {
-                    file: 'models/ske.html',
-                    label: 'Skeletons',
-                    tag: 'skeleton',
-                    sub: 'Bones, rest poses, and skinning palette building',
-                    blurb: 'the skeleton stored per LOD in gds files, its bones and rest poses, and the skinning palette'
-                },
-                {
-                    file: 'anim/animpack.html',
-                    label: 'AnimPack',
-                    tag: 'animation',
-                    sub: 'Character animation clips with bone tracks',
-                    blurb: 'animation packs with clips, tracks, packed keys and sampling'
-                },
-                {
-                    file: 'collision/col.html',
-                    label: 'Collision',
-                    tag: 'collision',
-                    sub: 'Collision meshes, shapes, and surface definitions',
-                    blurb: 'COL and PCOL collision geometry, shapes, and CST surface type tables'
-                },
-                {
-                    file: 'level/bog.html',
-                    label: 'Level DB',
-                    tag: 'level',
-                    sub: 'BOG level database and placement tables',
-                    blurb: 'the bog level database: sections, ties, shrubs, lights, spawners, entities and triggers'
-                },
-                {
-                    file: 'level/nav.html',
-                    label: 'NavMesh',
-                    tag: 'navigation',
-                    sub: 'Navigation polygon meshes',
-                    blurb: 'the Nav navigation mesh format with polygons, edges and bounding boxes'
-                },
-                {
-                    file: 'data/p2b.html',
-                    label: 'Tuning',
-                    tag: 'data',
-                    sub: 'P2B tuning table layout',
-                    blurb: 'tuning tables with sections A, B, C and D'
-                },
-                {
-                    file: 'data/lcl.html',
-                    label: 'Strings',
-                    tag: 'text',
-                    sub: 'Localised string tables',
-                    blurb: 'language string tables with binary-searched hashed records'
-                },
-                {
-                    file: 'ui/fkd.html',
-                    label: 'Fonts',
-                    tag: 'font',
-                    sub: 'FKD font kerning and glyph layout',
-                    blurb: 'font kerning data with glyph metrics and texture coordinates'
-                },
-                {
-                    file: 'ui/cam.html',
-                    label: 'Cameras',
-                    tag: 'camera',
-                    sub: 'Camera path keyframes',
-                    blurb: 'camera path files with position, direction and FOV keyframes'
-                }
+                { file: 'wad/wad.html', label: 'WAD', tag: 'container',
+                  sub: 'HIG! container with hash buckets and typed entries',
+                  blurb: 'the HIG! container: header, TJZIP image, hash buckets, entry types and lookup' },
+                { file: 'textures/htx.html', label: 'Textures', tag: 'texture',
+                  sub: 'HTX header, pixel formats and platform layouts',
+                  blurb: 'the .htx header, its pixel formats and each platform\'s storage' },
+                { file: 'models/gd.html', label: 'Models', tag: 'model',
+                  sub: 'Shared header, materials and per-kind mesh layouts',
+                  blurb: 'gdw world, gdi instanced, gdt tie and gds skinned models, with vertex formats and Wii display lists' },
+                { file: 'models/ske.html', label: 'Skeletons', tag: 'skeleton',
+                  sub: 'Bones, rest poses and the skinning palette',
+                  blurb: 'the per-LOD skeleton in .gds files and how the skinning palette is built' },
+                { file: 'anim/animpack.html', label: 'AnimPack', tag: 'animation',
+                  sub: 'Character clips with bone tracks',
+                  blurb: 'animation packs: clips, tracks, packed keys, curves and sampling' },
+                { file: 'collision/col.html', label: 'Collision', tag: 'collision',
+                  sub: 'Collision objects, meshes and surface types',
+                  blurb: '.col objects and meshes, and the .csd surface types they reference' },
+                { file: 'level/bog.html', label: 'Level DB', tag: 'level',
+                  sub: 'BOG level database and placement tables',
+                  blurb: 'the .bog level database: lights, entities, triggers, splines, ties and shrubs' },
+                { file: 'level/nav.html', label: 'NavMesh', tag: 'navigation',
+                  sub: 'AI navigation meshes',
+                  blurb: 'navigation meshes with polygons, edges and bounds' },
+                { file: 'data/p2b.html', label: 'Tuning', tag: 'data',
+                  sub: 'Self-describing P2B tuning tables',
+                  blurb: 'tuning tables carrying their own types, enums and strings' },
+                { file: 'data/lcl.html', label: 'Strings', tag: 'text',
+                  sub: 'LCL string tables and NOG name tables',
+                  blurb: 'localised .lcl string tables with hashed records, and .nog name lists' },
+                { file: 'ui/fkd.html', label: 'Fonts', tag: 'font',
+                  sub: 'FKD font kerning data',
+                  blurb: 'glyph cells and advances for a font texture' },
+                { file: 'ui/cam.html', label: 'Cameras', tag: 'camera',
+                  sub: 'Camera path keyframes',
+                  blurb: 'camera paths with position, direction and field-of-view keys' }
             ]
         },
         {
             name: 'Polarbit Racing Engine',
             dir: 'Polarbit',
             home: 'polarbit.html',
-            sub: 'Polarbit mobile racing engine reverse engineering documentation',
-            blurb: 'VFS container, textures, PIFF models and tracks, PXC scene graphs, audio, fonts, string tables and compression',
+            sub: 'Mobile racing engine file formats',
+            blurb: 'VFS archives, compression, textures, fonts, PIFF and PXC models, audio and string tables',
             pages: [
-                {
-                    file: 'vfs/fufs.html',
-                    label: 'FUFS',
-                    tag: 'container',
-                    sub: 'VFS archive format with hash-sorted entry table and optional name tables',
-                    blurb: 'the FUFS VFS container: header, entry table, name tables, and the custom name hash function'
-                },
-                {
-                    file: 'vfs/compression.html',
-                    label: 'Compression',
-                    tag: 'compression',
-                    sub: 'PLZP wrapper and bare zlib layers with exact parameters',
-                    blurb: 'PLZP and bare zlib compression layers, including exact deflate parameters and flush positions'
-                },
-                {
-                    file: 'texture/pvr.html',
-                    label: 'PVR',
-                    tag: 'texture',
-                    sub: 'PowerVR legacy texture format with all pixel formats',
-                    blurb: 'PVRv2 textures: header, pixel formats, mipmap chains, and twiddled storage'
-                },
-                {
-                    file: 'texture/font.html',
-                    label: 'PFNT',
-                    tag: 'font',
-                    sub: 'Bitmap font layout with glyph tables',
-                    blurb: 'PFNT bitmap fonts: headers, glyph records, palettes, and per-game pixel formats'
-                },
-                {
-                    file: 'texture/plates.html',
-                    label: 'Plates',
-                    tag: 'atlas',
-                    sub: 'TLPB and PLT texture atlas naming formats',
-                    blurb: 'TLPB (Getaway) and PLT (RT2) texture-atlas plates that name sub-images'
-                },
-                {
-                    file: 'model/piff.html',
-                    label: 'PIFF',
-                    tag: 'model',
-                    sub: 'Chunk-based models and tracks (3DOB/SCEN)',
-                    blurb: 'PIFF IFF-style chunk container for 3DOB models with skinning, animation, LODs, and SCEN tracks'
-                },
-                {
-                    file: 'model/pxc.html',
-                    label: 'PXC',
-                    tag: 'scene',
-                    sub: 'Scene graph with typed objects, geometry, curves and collision',
-                    blurb: 'PXC scene graphs: object tree, property lists, geometry, lights, animation, and cell-portal visibility'
-                },
-                {
-                    file: 'audio/audio.html',
-                    label: 'Audio',
-                    tag: 'audio',
-                    sub: 'PSND sounds and PMOD tracker modules',
-                    blurb: 'PSND sound blocks and PMOD music modules with effect numbers and sample encoding'
-                },
-                {
-                    file: 'data/strings.html',
-                    label: 'Strings',
-                    tag: 'text',
-                    sub: 'LANG, FCOL, XML, CSV, and GLSL shader sources',
-                    blurb: 'string tables: LANG, FCOL, Getaway CSV/HXX locale, XML databases, GLSL shaders, and credits'
-                }
+                { file: 'vfs/fufs.html', label: 'FUFS', tag: 'container',
+                  sub: 'VFS archive with a hash-sorted entry table',
+                  blurb: 'the FUFS container: header, entry table, name tables and name hash' },
+                { file: 'vfs/compression.html', label: 'Compression', tag: 'compression',
+                  sub: 'PLZP and bare zlib layers',
+                  blurb: 'PLZP and bare zlib layers, with the original compressor settings' },
+                { file: 'texture/pvr.html', label: 'PVR', tag: 'texture',
+                  sub: 'PowerVR legacy textures',
+                  blurb: 'PVR v2 textures: header, pixel formats, mipmaps and twiddled storage' },
+                { file: 'texture/font.html', label: 'PFNT', tag: 'font',
+                  sub: 'Bitmap fonts with glyph tables',
+                  blurb: 'PFNT bitmap fonts: header, glyph records, atlas and pixel encodings' },
+                { file: 'texture/plates.html', label: 'Plates', tag: 'atlas',
+                  sub: 'TLPB and PLT atlas plates',
+                  blurb: 'TLPB (Reckless Getaway) and PLT (Raging Thunder 2) atlas sub-image tables' },
+                { file: 'model/piff.html', label: 'PIFF', tag: 'model',
+                  sub: 'Chunked models and tracks (3DOB, SCEN)',
+                  blurb: 'PIFF chunk container: 3DOB models with skinning, animation and LODs, and SCEN tracks' },
+                { file: 'model/pxc.html', label: 'PXC', tag: 'scene',
+                  sub: 'Object trees, geometry, curves and collision',
+                  blurb: 'PXC scene files: object tree, properties, geometry, curves, collision and cells' },
+                { file: 'audio/audio.html', label: 'Audio', tag: 'audio',
+                  sub: 'PSND sounds and PMOD modules',
+                  blurb: 'PSND sound blocks and PMOD tracker modules' },
+                { file: 'data/strings.html', label: 'Strings', tag: 'text',
+                  sub: 'LANG, FCOL, locale sources, XML and shaders',
+                  blurb: 'string tables and text: LANG, FCOL, CSV and HXX locale sources, XML, GLSL shaders and credits' }
             ]
         },
         {
             name: 'Suzumiya Haruhi no Chourantou / Gekitou',
             dir: 'Harutou',
             home: 'harutou.html',
-            sub: 'Suzumiya Haruhi no Chourantou / Gekitou reverse engineering documentation',
-            blurb: 'archive container, textures, models, animation, and data layout',
+            sub: 'Windows (Direct3D 9) file formats',
+            blurb: 'BIN archives, textures, skinned models, animation, audio and data',
             pages: [
-                {
-                    file: 'archive/bin.html',
-                    label: 'BIN',
-                    tag: 'archive',
-                    sub: 'Nested archive container (data/*.bin)',
-                    blurb: 'recursively nested archive container used by every <code>data/*.bin</code> file'
-                },
-                {
-                    file: 'texture/ringtex2.html',
-                    label: 'RINGTEX2',
-                    tag: 'texture',
-                    sub: 'Uncompressed BGRA texture',
-                    blurb: 'uncompressed BGRA texture'
-                },
-                {
-                    file: 'model/model.html',
-                    label: 'Model',
-                    tag: 'model',
-                    sub: 'Skinned model blob',
-                    blurb: 'skinned model blob: node graph, meshes, materials, embedded textures'
-                },
-                {
-                    file: 'animation/anim.html',
-                    label: 'Animation',
-                    tag: 'animation',
-                    sub: 'Keyframed animation clip',
-                    blurb: 'one keyframed clip per blob, matched to a model by node name'
-                },
-                {
-                    file: 'audio/audio.html',
-                    label: 'Audio',
-                    tag: 'audio',
-                    sub: 'Ogg Vorbis and RIFF WAVE payloads',
-                    blurb: 'Ogg Vorbis and RIFF WAVE payloads, no custom container'
-                },
-                {
-                    file: 'effect/btef.html',
-                    label: 'BTEF',
-                    tag: 'effect',
-                    sub: 'Effect script blob',
-                    blurb: 'effect script blob, not reverse-engineered'
-                },
-                {
-                    file: 'data/tables.html',
-                    label: 'Data tables',
-                    tag: 'tables',
-                    sub: 'Gameplay tables, shader bytecode and UI data',
-                    blurb: 'gameplay tables, shader bytecode and UI data, not reverse-engineered'
-                }
+                { file: 'archive/bin.html', label: 'BIN', tag: 'archive',
+                  sub: 'Nested archive container (data/*.bin)',
+                  blurb: 'the nested table of contents behind every <code>data/*.bin</code> file' },
+                { file: 'texture/ringtex2.html', label: 'RINGTEX2', tag: 'texture',
+                  sub: 'Uncompressed RGBA texture',
+                  blurb: '64-byte header and raw RGBA8 pixels' },
+                { file: 'model/model.html', label: 'Model', tag: 'model',
+                  sub: 'Skinned model blob',
+                  blurb: 'node list of bones and meshes, materials, draw stream and embedded textures' },
+                { file: 'animation/anim.html', label: 'Animation', tag: 'animation',
+                  sub: 'Keyframed animation clip',
+                  blurb: 'one keyframed clip per blob, matched to a model by node name' },
+                { file: 'audio/audio.html', label: 'Audio', tag: 'audio',
+                  sub: 'Ogg Vorbis and RIFF WAVE payloads',
+                  blurb: 'standard Ogg Vorbis and RIFF WAVE files, no custom container' },
+                { file: 'effect/btef.html', label: 'BTEF', tag: 'effect',
+                  sub: 'Effect script blob',
+                  blurb: 'effect scripts, not yet reverse engineered' },
+                { file: 'data/tables.html', label: 'Data tables', tag: 'tables',
+                  sub: 'Gameplay tables, shader bytecode and UI data',
+                  blurb: 'gameplay tables, shader bytecode and UI data, not yet reverse engineered' }
             ]
         },
         {
-            name: 'Virtuos DS Racing Game Engine',
+            name: 'Virtuos DS Racing Engine',
             dir: 'Kartz',
             home: 'kartz.html',
-            sub: 'Virtuos DS Racing Game Engine reverse engineering documentation',
-            blurb: 'archive triple, textures, track geometry, display lists, and resource databases for Madagascar Kartz, DreamWorks Super Star Kartz, Hot Wheels: Battle Force 5, Pimp My Ride: Street Racing and Monster Jam: Path of Destruction',
+            sub: 'Nintendo DS racing engine file formats',
+            blurb: 'archives, resource databases, textures, tracks, collision and models for five Nintendo DS racing games',
             pages: [
-                {
-                    file: 'archive/gda.html',
-                    label: 'GDA',
-                    tag: 'archive',
-                    sub: 'Archive triple - GDA, GDF and GDT',
-                    blurb: 'three-file archive: raw data, path table, offset/size table'
-                },
-                {
-                    file: 'texture/5tx.html',
-                    label: '5TX',
-                    tag: 'texture',
-                    sub: 'NTTX texture container',
-                    blurb: 'Nintendo DS texture container with PALT and IMGE sections'
-                },
-                {
-                    file: 'track/trk.html',
-                    label: 'TRK',
-                    tag: 'track',
-                    sub: 'Track geometry container',
-                    blurb: 'track geometry: chunk tables, texture references, and tail sections'
-                },
-                {
-                    file: 'track/displaylist.html',
-                    label: 'Display list',
-                    tag: 'geometry',
-                    sub: 'Nintendo DS GX command stream inside a chunk',
-                    blurb: 'the GX opcode stream a TRK chunk carries, and the shape real chunks use'
-                },
-                {
-                    file: 'resource/rdf.html',
-                    label: 'RDF',
-                    tag: 'resources',
-                    sub: 'Resource database and texture slot table',
-                    blurb: 'the serialised object tree, and the texture slot table a TRK indexes'
-                },
-                {
-                    file: 'resource/raf.html',
-                    label: 'RAF',
-                    tag: 'relocations',
-                    sub: 'Pointer fixup table for an RDF',
-                    blurb: 'the pointer offsets an RDF needs patched at load time'
-                },
-                {
-                    file: 'track/col.html',
-                    label: 'COL',
-                    tag: 'collision',
-                    sub: 'Collision surface layout and sector records',
-                    blurb: 'the cross-section chain, sector records and collision import rules'
-                },
-                {
-                    file: 'track/bpvs.html',
-                    label: 'BPVS',
-                    tag: 'visibility',
-                    sub: 'Chunk visibility run lists',
-                    blurb: 'the per-sector run-length lists that say which chunks to draw'
-                },
-                {
-                    file: 'data/zon.html',
-                    label: 'ZON',
-                    tag: 'scenery',
-                    sub: 'Scenery bundle layout',
-                    blurb: 'the model bundle of track-format chunks and its per-model records'
-                },
-                {
-                    file: 'data/car.html',
-                    label: 'CAR',
-                    tag: 'vehicle',
-                    sub: 'Vehicle and prop model layout',
-                    blurb: 'the rigid model, its chunk table and its wheel block'
-                },
-                {
-                    file: 'data/amd.html',
-                    label: 'AMD',
-                    tag: 'character',
-                    sub: 'Character model layout and skinning',
-                    blurb: 'the skinned model, its bone table and its display-list skin'
-                },
-                {
-                    file: 'data/ske.html',
-                    label: 'SKE',
-                    tag: 'skeleton',
-                    sub: 'Skeleton layout',
-                    blurb: 'the parented bones and their rest transforms'
-                },
-                {
-                    file: 'data/ani.html',
-                    label: 'ANI',
-                    tag: 'animation',
-                    sub: 'Animation clip layout',
-                    blurb: 'the per-bone matrix tracks and frame poses'
-                },
-                {
-                    file: 'data/other.html',
-                    label: 'Decoded assets',
-                    tag: 'assets',
-                    sub: 'Spec overview, verification and known limits',
-                    blurb: 'spec index, round-trip totals, editing rules and known limits'
-                }
+                { file: 'archive/gda.html', label: 'GDA', tag: 'archive',
+                  sub: 'Archive triple: GDA, GDF and GDT',
+                  blurb: 'three-file archive: data, path table and range table' },
+                { file: 'resource/rdf.html', label: 'RDF', tag: 'resources',
+                  sub: 'Resource database and texture slot table',
+                  blurb: 'the serialised object tree, and the texture slot table a TRK indexes' },
+                { file: 'resource/raf.html', label: 'RAF', tag: 'relocations',
+                  sub: 'Pointer fixup table for an RDF',
+                  blurb: 'the pointer offsets an RDF needs patched at load time' },
+                { file: 'texture/5tx.html', label: '5TX', tag: 'texture',
+                  sub: 'NTTX texture container',
+                  blurb: 'Nintendo DS textures with PALT and IMGE sections, and how tracks bind them' },
+                { file: 'track/trk.html', label: 'TRK', tag: 'track',
+                  sub: 'Track geometry container',
+                  blurb: 'track geometry: header, chunk tables, chunks and tail sections' },
+                { file: 'track/displaylist.html', label: 'Display list', tag: 'geometry',
+                  sub: 'Nintendo DS GX command stream inside a chunk',
+                  blurb: 'the GX opcode stream a chunk carries, and the shape real chunks use' },
+                { file: 'track/col.html', label: 'COL', tag: 'collision',
+                  sub: 'Collision surface layout and sector records',
+                  blurb: 'the cross-section chain and sector records of the drivable surface' },
+                { file: 'track/bpvs.html', label: 'BPVS', tag: 'visibility',
+                  sub: 'Chunk visibility run lists',
+                  blurb: 'per-sector run lists of the chunks to draw' },
+                { file: 'data/zon.html', label: 'ZON', tag: 'scenery',
+                  sub: 'Scenery bundle layout',
+                  blurb: 'scenery models built from track-format chunks' },
+                { file: 'data/car.html', label: 'CAR', tag: 'vehicle',
+                  sub: 'Vehicle and prop model layout',
+                  blurb: 'rigid models, their chunk table and their wheel block' },
+                { file: 'data/amd.html', label: 'AMD', tag: 'character',
+                  sub: 'Character model layout and skinning',
+                  blurb: 'skinned models, their bone table and their display-list skin' },
+                { file: 'data/ske.html', label: 'SKE', tag: 'skeleton',
+                  sub: 'Skeleton layout',
+                  blurb: 'parented bones and their rest transforms' },
+                { file: 'data/ani.html', label: 'ANI', tag: 'animation',
+                  sub: 'Animation clip layout',
+                  blurb: 'per-bone matrix tracks and frame poses' },
+                { file: 'data/other.html', label: 'Editing', tag: 'guide',
+                  sub: 'Replacing assets, round trips and known limits',
+                  blurb: 'what OmegaStudio can replace, track editing rules, round-trip results and known limits' }
             ]
         }
     ];
@@ -449,7 +248,7 @@
         PAGES.push({
             path: game.path,
             game: game,
-            title: game.name + ' Wiki - File Formats',
+            title: 'File Formats \u00B7 ' + game.name + ' Wiki',
             heading: 'Home',
             sub: game.sub,
             description: game.name + ' file format reference: ' +
@@ -496,8 +295,9 @@
     const page = PAGES.filter(function (entry) { return entry.path === path; })[0] || null;
 
     /* ------------------------------------------------------------------
-       Head. Written while the head is still parsing, so the stylesheet
-       lands before first paint.
+       Head. Written while the head is still parsing. A script-inserted
+       stylesheet does not block rendering, so the page stays hidden until
+       both the stylesheet and the DOM are ready (see the end of this file).
        ------------------------------------------------------------------ */
 
     function element(tag, attributes) {
@@ -527,7 +327,10 @@
             content: page ? page.description : SITE.description
         }));
         document.head.appendChild(element('link', { rel: 'icon', href: favicon }));
-        document.head.appendChild(element('link', { rel: 'stylesheet', href: url('style.css') }));
+
+        const sheet = element('link', { rel: 'stylesheet', href: url('style.css') });
+        sheet.onload = sheet.onerror = ready;
+        document.head.appendChild(sheet);
 
         document.title = page ? page.title : SITE.brand;
     }
@@ -675,11 +478,25 @@
         }
     });
 
+    /* ------------------------------------------------------------------
+       Start-up. The page is built once the stylesheet and the DOM are both
+       ready, so it never paints unstyled or animates into place.
+       ------------------------------------------------------------------ */
+
+    let pending = 2;
+
+    function ready() {
+        if (--pending) return;
+        buildPage();
+        document.documentElement.style.visibility = '';
+    }
+
+    document.documentElement.style.visibility = 'hidden';
     buildHead();
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', buildPage);
+        document.addEventListener('DOMContentLoaded', ready);
     } else {
-        buildPage();
+        ready();
     }
 })();

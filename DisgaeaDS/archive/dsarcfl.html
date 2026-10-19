@@ -5,52 +5,37 @@
 <script src="../../script.js"></script>
 </head>
 <body>
-<p><strong>DSARC FL</strong> is a container format used to bundle multiple audio, music, and sound effect files into a single <code>.dat</code> archive.</p>
+<p><strong>DSARC FL</strong> bundles named files into one <code>.dat</code> archive. <em>Disgaea DS</em> uses it for all its audio: <code>bgm.dat</code>, <code>song.dat</code>, <code>se.dat</code>, <code>voice.dat</code> and <code>msgvo.dat</code>, each with a <code>.tbl</code> beside it.</p>
 
-<ul>
-  <li><strong>Magic</strong>: ASCII <code>"DSARC FL"</code> (8 bytes)</li>
-  <li><strong>Version</strong>: u32 (little-endian)</li>
-  <li><strong>Entry Count</strong>: u32 (little-endian)</li>
-  <li><strong>Header Size</strong>: 16 bytes (magic + count + version)</li>
-  <li><strong>Name Field Size</strong>: 40 bytes per entry (UTF-8, null-padded)</li>
-  <li><strong>Entry Info Size</strong>: 8 bytes per entry (size + offset)</li>
-</ul>
-
-<h3>File Layout</h3>
-<pre>+----------------------+   &lt;-- offset 0
-| Magic (8 bytes)      |       "DSARC FL"
-+----------------------+   &lt;-- offset 8
-| Count (4 bytes)      |       Number of entries (u32 LE)
-+----------------------+   &lt;-- offset 12
-| Version (4 bytes)    |       Format version (u32 LE)
-+----------------------+   &lt;-- offset 16 (HEADER_SIZE)
-| Entry Table ...      |       count * (40 + 8) bytes
-+----------------------+   &lt;-- data start
-| File Data Section... |
+<h2>Layout</h2>
+<pre>+----------------------+   &lt;-- 0x00
+| Header               |       16 bytes
++----------------------+   &lt;-- 0x10
+| Entry table          |       count * 48 bytes
++----------------------+
+| File data            |       in table order
 +----------------------+   &lt;-- EOF</pre>
 
-<h3>Header</h3>
+<h2>Header</h2>
 <table>
-  <thead><tr><th>Offset</th><th>Length</th><th>Type</th><th>Description</th></tr></thead>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
-    <tr><td>0x00</td><td>8</td><td>char[8]</td><td>Magic identifier <code>"DSARC FL"</code></td></tr>
-    <tr><td>0x08</td><td>4</td><td>u32</td><td>Number of entries (little-endian)</td></tr>
-    <tr><td>0x0C</td><td>4</td><td>u32</td><td>Archive version (little-endian), currently 1</td></tr>
+    <tr><td>0x00</td><td>8</td><td>char[8]</td><td>Magic <code>"DSARC FL"</code></td></tr>
+    <tr><td>0x08</td><td>4</td><td>u32</td><td>Entry count</td></tr>
+    <tr><td>0x0C</td><td>4</td><td>u32</td><td>Version, 1</td></tr>
   </tbody>
 </table>
 
-<h3>Entry Table</h3>
-<p>Each entry consists of a 40-byte name, followed by 8 bytes of metadata.</p>
+<h2>Entry (48 bytes)</h2>
 <table>
-  <thead><tr><th>Field</th><th>Length</th><th>Type</th><th>Description</th></tr></thead>
+  <thead><tr><th>Offset</th><th>Size</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
-    <tr><td>Name</td><td>40</td><td>char[40]</td><td>Null-padded UTF-8 relative file path</td></tr>
-    <tr><td>File Size</td><td>4</td><td>u32</td><td>Data length in bytes</td></tr>
-    <tr><td>Data Offset</td><td>4</td><td>u32</td><td>Byte offset to file data (from start of archive)</td></tr>
+    <tr><td>0x00</td><td>40</td><td>char[40]</td><td>Relative file path, NUL-padded</td></tr>
+    <tr><td>0x28</td><td>4</td><td>u32</td><td>File size</td></tr>
+    <tr><td>0x2C</td><td>4</td><td>u32</td><td>Data offset, from the start of the archive</td></tr>
   </tbody>
 </table>
 
-<h3>Data Section</h3>
-<p>File data is concatenated immediately after the entry table, in the same order as table entries.</p>
+<p>All integers are little-endian. File data follows the entry table directly, in table order.</p>
 </body>
 </html>

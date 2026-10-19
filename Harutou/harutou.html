@@ -5,31 +5,30 @@
 <script src="../script.js"></script>
 </head>
 <body>
-<p>Reference for the file formats used in <em>Suzumiya Haruhi no Chourantou</em> (also updated and most known as <em>Suzumiya Haruhi no Gekitou</em>), a Direct3D 9 title for Windows. Everything here was reverse engineered from the retail 2007 data files.</p>
+<p><em>Suzumiya Haruhi no Chourantou</em>, best known in its updated release <em>Suzumiya Haruhi no Gekitou</em>, is a 2007 Direct3D 9 game for Windows. These pages cover its <code>data/*.bin</code> archives and the assets inside them. Every layout here is checked against OmegaStudio's Harugeki plugin.</p>
 
 <h2>File Formats</h2>
 <ul data-list></ul>
 
 <h2>Conventions</h2>
-<p>These hold across every format on this wiki unless a page says otherwise.</p>
 <div class="spec-grid">
-  <div class="label">Byte order</div><div>Little-endian for all integers</div>
+  <div class="label">Byte order</div><div>Little-endian</div>
   <div class="label">Floats</div><div>IEEE-754 binary32</div>
-  <div class="label">Strings</div><div>Fixed-width, null padded, not null terminated</div>
-  <div class="label">Matrices</div><div>Row-vector Direct3D convention (<code>v' = v * M</code>), translation in the last row</div>
-  <div class="label">Coordinates</div><div>Left-handed, Y up, roughly 1 unit per centimetre</div>
-  <div class="label">Padding byte</div><div><code>0xFE</code> inside archive tables, <code>0x00</code> elsewhere</div>
+  <div class="label">Strings</div><div>Fixed-width ASCII, null padded, not always null terminated</div>
+  <div class="label">Matrices</div><div>4x4, row-vector Direct3D convention (<code>v' = v * M</code>), translation in the last row</div>
+  <div class="label">Axes</div><div>Y up, roughly 1 unit per centimetre</div>
+  <div class="label">Padding</div><div><code>0xFE</code> inside archive tables, <code>0x00</code> after payloads</div>
 </div>
 
-<p>Geometry, bind matrices and animation keys all share that one space. Converting to a right-handed target is a mirror rather than a rotation: negate one axis, conjugate every matrix by it, and reverse triangle winding.</p>
+<p>Geometry, bind matrices and animation keys all share one space. OmegaStudio brings it into glTF space by negating X and Z on every position and normal and conjugating every matrix by <code>diag(-1, 1, -1, 1)</code>. Triangle order is kept as stored.</p>
 
 <h2>Data Layout</h2>
-<p>All shipped assets live under <code>data/</code>. Every <code>.bin</code> there is the same <a href="archive/bin.html">nested table of contents</a>; the payloads below are what the leaves turn out to be.</p>
+<p>Every <code>.bin</code> under <code>data/</code> is the same <a href="archive/bin.html">nested table of contents</a>. Leaves carry no names, so the labels in parentheses below describe what a payload is; nothing in the file stores them.</p>
 
 <div class="file-tree">data/
 ├── *.bin [BIN] - character and stage archives
-│   ├── (model blob) - node graph, meshes, embedded ringtex2 textures
-│   ├── (animation blobs) - one clip each, siblings of the model blob
+│   ├── (model) - node graph, meshes, embedded ringtex2 textures
+│   └── (animations) - one clip each, siblings of the model
 ├── bgm.bin [BIN]
 │   └── (Ogg Vorbis) - background music
 ├── se.bin [BIN]
@@ -37,16 +36,20 @@
 ├── voice.bin [BIN]
 │   └── (RIFF WAVE) - voice clips
 ├── eff.bin [BIN]
-│   └── (BTEF) (29 blobs) - effect scripts, not reverse-engineered
-├── param.bin - gameplay tables, not reverse-engineered
-├── sce.bin - not reverse-engineered
-├── sys.bin - not reverse-engineered
-└── sel.cdt - UI data, not reverse-engineered</div>
+│   └── (BTEF) - 29 effect scripts, not decoded
+├── param.bin - gameplay tables, not decoded
+├── sce.bin - not decoded
+├── sys.bin - not decoded
+└── sel.cdt - UI data, not decoded</div>
 
-<p>Archive leaves carry no filenames, so payloads are identified by magic bytes and structure. Names in parentheses above are descriptive, not stored.</p>
-
-<p style="margin-top:0.8em;font-size:0.85rem;color:#64748b;">
-  <span class="badge">Info</span> This wiki is maintained as a reference for modders, researchers, and archivists.
-</p>
+<h2>In OmegaStudio</h2>
+<ul>
+  <li>Any <code>data/*.bin</code> whose root passes the <a href="archive/bin.html#checks">table check</a> opens as a tree. Models, their meshes, materials, skeleton and embedded textures, and animation clips all appear as rows.</li>
+  <li>A model plays every clip that sits beside it in the same table.</li>
+  <li>A texture is replaced from a PNG of any size. An embedded texture is spliced back into its model, and the model's offsets are moved to match.</li>
+  <li>A model's geometry is replaced from a glTF file, with joints bound to bones by name. See <a href="model/model.html#import">Model</a>.</li>
+  <li>Any slot can be extracted or replaced as raw bytes, and Ogg and WAV leaves play in the Audio pane.</li>
+  <li>Saving rebuilds the whole archive in place.</li>
+</ul>
 </body>
 </html>

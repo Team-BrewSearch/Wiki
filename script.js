@@ -104,6 +104,164 @@
             ]
         },
         {
+            name: 'DreamWorks Super Star Kartz',
+            dir: 'DWSSK',
+            home: 'dwssk.html',
+            sub: 'DreamWorks Super Star Kartz (PS3, Xbox 360, Wii, 3DS) reverse engineering documentation',
+            blurb: 'WAD containers, models, animation, collision, navigation, level databases, and data tables',
+            pages: [
+                {
+                    file: 'wad/wad.html',
+                    label: 'WAD',
+                    tag: 'container',
+                    sub: 'HIG! container format with hash buckets and typed entries',
+                    blurb: 'the HIG! WAD container: header, hash buckets, entry headers, type lists, and lookup'
+                },
+                {
+                    file: 'models/gd.html',
+                    label: 'Models',
+                    tag: 'models',
+                    sub: 'Shared header, materials, shaders, textures and per-kind mesh layouts',
+                    blurb: 'gdw world, gds skinned, gdi instanced, and gdt/gdt.piece tie models with shared header, materials, and vertex formats'
+                },
+                {
+                    file: 'models/ske.html',
+                    label: 'Skeletons',
+                    tag: 'skeleton',
+                    sub: 'Bones, rest poses, and skinning palette building',
+                    blurb: 'the skeleton stored per LOD in gds files, its bones and rest poses, and the skinning palette'
+                },
+                {
+                    file: 'anim/animpack.html',
+                    label: 'AnimPack',
+                    tag: 'animation',
+                    sub: 'Character animation clips with bone tracks',
+                    blurb: 'animation packs with clips, tracks, packed keys and sampling'
+                },
+                {
+                    file: 'collision/col.html',
+                    label: 'Collision',
+                    tag: 'collision',
+                    sub: 'Collision meshes, shapes, and surface definitions',
+                    blurb: 'COL and PCOL collision geometry, shapes, and CST surface type tables'
+                },
+                {
+                    file: 'level/bog.html',
+                    label: 'Level DB',
+                    tag: 'level',
+                    sub: 'BOG level database and placement tables',
+                    blurb: 'the bog level database: sections, ties, shrubs, lights, spawners, entities and triggers'
+                },
+                {
+                    file: 'level/nav.html',
+                    label: 'NavMesh',
+                    tag: 'navigation',
+                    sub: 'Navigation polygon meshes',
+                    blurb: 'the Nav navigation mesh format with polygons, edges and bounding boxes'
+                },
+                {
+                    file: 'data/p2b.html',
+                    label: 'Tuning',
+                    tag: 'data',
+                    sub: 'P2B tuning table layout',
+                    blurb: 'tuning tables with sections A, B, C and D'
+                },
+                {
+                    file: 'data/lcl.html',
+                    label: 'Strings',
+                    tag: 'text',
+                    sub: 'Localised string tables',
+                    blurb: 'language string tables with binary-searched hashed records'
+                },
+                {
+                    file: 'ui/fkd.html',
+                    label: 'Fonts',
+                    tag: 'font',
+                    sub: 'FKD font kerning and glyph layout',
+                    blurb: 'font kerning data with glyph metrics and texture coordinates'
+                },
+                {
+                    file: 'ui/cam.html',
+                    label: 'Cameras',
+                    tag: 'camera',
+                    sub: 'Camera path keyframes',
+                    blurb: 'camera path files with position, direction and FOV keyframes'
+                }
+            ]
+        },
+        {
+            name: 'Polarbit Racing Engine',
+            dir: 'Polarbit',
+            home: 'polarbit.html',
+            sub: 'Polarbit mobile racing engine reverse engineering documentation',
+            blurb: 'VFS container, textures, PIFF models and tracks, PXC scene graphs, audio, fonts, string tables and compression',
+            pages: [
+                {
+                    file: 'vfs/fufs.html',
+                    label: 'FUFS',
+                    tag: 'container',
+                    sub: 'VFS archive format with hash-sorted entry table and optional name tables',
+                    blurb: 'the FUFS VFS container: header, entry table, name tables, and the custom name hash function'
+                },
+                {
+                    file: 'vfs/compression.html',
+                    label: 'Compression',
+                    tag: 'compression',
+                    sub: 'PLZP wrapper and bare zlib layers with exact parameters',
+                    blurb: 'PLZP and bare zlib compression layers, including exact deflate parameters and flush positions'
+                },
+                {
+                    file: 'texture/pvr.html',
+                    label: 'PVR',
+                    tag: 'texture',
+                    sub: 'PowerVR legacy texture format with all pixel formats',
+                    blurb: 'PVRv2 textures: header, pixel formats, mipmap chains, and twiddled storage'
+                },
+                {
+                    file: 'texture/font.html',
+                    label: 'PFNT',
+                    tag: 'font',
+                    sub: 'Bitmap font layout with glyph tables',
+                    blurb: 'PFNT bitmap fonts: headers, glyph records, palettes, and per-game pixel formats'
+                },
+                {
+                    file: 'texture/plates.html',
+                    label: 'Plates',
+                    tag: 'atlas',
+                    sub: 'TLPB and PLT texture atlas naming formats',
+                    blurb: 'TLPB (Getaway) and PLT (RT2) texture-atlas plates that name sub-images'
+                },
+                {
+                    file: 'model/piff.html',
+                    label: 'PIFF',
+                    tag: 'model',
+                    sub: 'Chunk-based models and tracks (3DOB/SCEN)',
+                    blurb: 'PIFF IFF-style chunk container for 3DOB models with skinning, animation, LODs, and SCEN tracks'
+                },
+                {
+                    file: 'model/pxc.html',
+                    label: 'PXC',
+                    tag: 'scene',
+                    sub: 'Scene graph with typed objects, geometry, curves and collision',
+                    blurb: 'PXC scene graphs: object tree, property lists, geometry, lights, animation, and cell-portal visibility'
+                },
+                {
+                    file: 'audio/audio.html',
+                    label: 'Audio',
+                    tag: 'audio',
+                    sub: 'PSND sounds and PMOD tracker modules',
+                    blurb: 'PSND sound blocks and PMOD music modules with effect numbers and sample encoding'
+                },
+                {
+                    file: 'data/strings.html',
+                    label: 'Strings',
+                    tag: 'text',
+                    sub: 'LANG, FCOL, XML, CSV, and GLSL shader sources',
+                    blurb: 'string tables: LANG, FCOL, Getaway CSV/HXX locale, XML databases, GLSL shaders, and credits'
+                }
+            ]
+        },
+        {
             name: 'Suzumiya Haruhi no Chourantou / Gekitou',
             dir: 'Harutou',
             home: 'harutou.html',
@@ -265,164 +423,6 @@
                     tag: 'assets',
                     sub: 'Spec overview, verification and known limits',
                     blurb: 'spec index, round-trip totals, editing rules and known limits'
-                }
-            ]
-        },
-        {
-            name: 'DreamWorks Super Star Kartz',
-            dir: 'DWSSK',
-            home: 'dwssk.html',
-            sub: 'DreamWorks Super Star Kartz (PS3, Xbox 360, Wii, 3DS) reverse engineering documentation',
-            blurb: 'WAD containers, models, animation, collision, navigation, level databases, and data tables',
-            pages: [
-                {
-                    file: 'wad/wad.html',
-                    label: 'WAD',
-                    tag: 'container',
-                    sub: 'HIG! container format with hash buckets and typed entries',
-                    blurb: 'the HIG! WAD container: header, hash buckets, entry headers, type lists, and lookup'
-                },
-                {
-                    file: 'models/gd.html',
-                    label: 'Models',
-                    tag: 'models',
-                    sub: 'Shared header, materials, shaders, textures and per-kind mesh layouts',
-                    blurb: 'gdw world, gds skinned, gdi instanced, and gdt/gdt.piece tie models with shared header, materials, and vertex formats'
-                },
-                {
-                    file: 'models/ske.html',
-                    label: 'Skeletons',
-                    tag: 'skeleton',
-                    sub: 'Bones, rest poses, and skinning palette building',
-                    blurb: 'the skeleton stored per LOD in gds files, its bones and rest poses, and the skinning palette'
-                },
-                {
-                    file: 'anim/animpack.html',
-                    label: 'AnimPack',
-                    tag: 'animation',
-                    sub: 'Character animation clips with bone tracks',
-                    blurb: 'animation packs with clips, tracks, packed keys and sampling'
-                },
-                {
-                    file: 'collision/col.html',
-                    label: 'Collision',
-                    tag: 'collision',
-                    sub: 'Collision meshes, shapes, and surface definitions',
-                    blurb: 'COL and PCOL collision geometry, shapes, and CST surface type tables'
-                },
-                {
-                    file: 'level/bog.html',
-                    label: 'Level DB',
-                    tag: 'level',
-                    sub: 'BOG level database and placement tables',
-                    blurb: 'the bog level database: sections, ties, shrubs, lights, spawners, entities and triggers'
-                },
-                {
-                    file: 'level/nav.html',
-                    label: 'NavMesh',
-                    tag: 'navigation',
-                    sub: 'Navigation polygon meshes',
-                    blurb: 'the Nav navigation mesh format with polygons, edges and bounding boxes'
-                },
-                {
-                    file: 'data/p2b.html',
-                    label: 'Tuning',
-                    tag: 'data',
-                    sub: 'P2B tuning table layout',
-                    blurb: 'tuning tables with sections A, B, C and D'
-                },
-                {
-                    file: 'data/lcl.html',
-                    label: 'Strings',
-                    tag: 'text',
-                    sub: 'Localised string tables',
-                    blurb: 'language string tables with binary-searched hashed records'
-                },
-                {
-                    file: 'ui/fkd.html',
-                    label: 'Fonts',
-                    tag: 'font',
-                    sub: 'FKD font kerning and glyph layout',
-                    blurb: 'font kerning data with glyph metrics and texture coordinates'
-                },
-                {
-                    file: 'ui/cam.html',
-                    label: 'Cameras',
-                    tag: 'camera',
-                    sub: 'Camera path keyframes',
-                    blurb: 'camera path files with position, direction and FOV keyframes'
-                }
-            ]
-        },
-        {
-            name: 'Polarbit Racing Engine',
-            dir: 'Polarbit',
-            home: 'polarbit.html',
-            sub: 'Polarbit mobile racing engine reverse engineering documentation',
-            blurb: 'VFS container, textures, PIFF models and tracks, PXC scene graphs, audio, fonts, string tables and compression',
-            pages: [
-                {
-                    file: 'vfs/fufs.html',
-                    label: 'FUFS',
-                    tag: 'container',
-                    sub: 'VFS archive format with hash-sorted entry table and optional name tables',
-                    blurb: 'the FUFS VFS container: header, entry table, name tables, and the custom name hash function'
-                },
-                {
-                    file: 'vfs/compression.html',
-                    label: 'Compression',
-                    tag: 'compression',
-                    sub: 'PLZP wrapper and bare zlib layers with exact parameters',
-                    blurb: 'PLZP and bare zlib compression layers, including exact deflate parameters and flush positions'
-                },
-                {
-                    file: 'texture/pvr.html',
-                    label: 'PVR',
-                    tag: 'texture',
-                    sub: 'PowerVR legacy texture format with all pixel formats',
-                    blurb: 'PVRv2 textures: header, pixel formats, mipmap chains, and twiddled storage'
-                },
-                {
-                    file: 'texture/font.html',
-                    label: 'PFNT',
-                    tag: 'font',
-                    sub: 'Bitmap font layout with glyph tables',
-                    blurb: 'PFNT bitmap fonts: headers, glyph records, palettes, and per-game pixel formats'
-                },
-                {
-                    file: 'texture/plates.html',
-                    label: 'Plates',
-                    tag: 'atlas',
-                    sub: 'TLPB and PLT texture atlas naming formats',
-                    blurb: 'TLPB (Getaway) and PLT (RT2) texture-atlas plates that name sub-images'
-                },
-                {
-                    file: 'model/piff.html',
-                    label: 'PIFF',
-                    tag: 'model',
-                    sub: 'Chunk-based models and tracks (3DOB/SCEN)',
-                    blurb: 'PIFF IFF-style chunk container for 3DOB models with skinning, animation, LODs, and SCEN tracks'
-                },
-                {
-                    file: 'model/pxc.html',
-                    label: 'PXC',
-                    tag: 'scene',
-                    sub: 'Scene graph with typed objects, geometry, curves and collision',
-                    blurb: 'PXC scene graphs: object tree, property lists, geometry, lights, animation, and cell-portal visibility'
-                },
-                {
-                    file: 'audio/audio.html',
-                    label: 'Audio',
-                    tag: 'audio',
-                    sub: 'PSND sounds and PMOD tracker modules',
-                    blurb: 'PSND sound blocks and PMOD music modules with effect numbers and sample encoding'
-                },
-                {
-                    file: 'data/strings.html',
-                    label: 'Strings',
-                    tag: 'text',
-                    sub: 'LANG, FCOL, XML, CSV, and GLSL shader sources',
-                    blurb: 'string tables: LANG, FCOL, Getaway CSV/HXX locale, XML databases, GLSL shaders, and credits'
                 }
             ]
         }

@@ -5,7 +5,7 @@
 <script src="../../script.js"></script>
 </head>
 <body>
-<p><code>.fkd</code> / PFNT fonts. Loader: 0x80ee9c0 in the DWSSK plugin; in Polarbit these are read by <code>cnk2tool.py</code>. A 64-byte header is followed by raw pixels.</p>
+<p><code>PFNT</code> is Polarbit's bitmap font format: one atlas per file, built from a 12-byte fixed header, a glyph record for every character in the range, and a palette followed by the pixel data. The pixel-format byte selects one of the per-game layouts below.</p>
 
 <h3>File Layout</h3>
 <pre>0    4      "PFNT"

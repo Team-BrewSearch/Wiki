@@ -18,7 +18,7 @@
 <p>Top-level chunks, in file order: HEAD, TEXL, then MTRL + APPR (newer models) or MATL / MAT2 (older ones), MESH, NORM, TXUV, COLR, one POLY per primitive group, ID, then optional FORM:SKIN, FORM:ANIM and FORM:LOD groups.</p>
 
 <h4>HEAD</h4>
-<p>76 bytes (19 int32) on models that use MTRL + APPR, 72 bytes (18 int32) on the rest.</p>
+<p>76 bytes (19 i32) on models that use MTRL + APPR, 72 bytes (18 i32) on the rest.</p>
 <table>
   <thead><tr><th>Index</th><th>Meaning</th></tr></thead>
   <tbody>
@@ -45,9 +45,9 @@
   <thead><tr><th>Chunk</th><th>Data</th></tr></thead>
   <tbody>
     <tr><td><code>TEXL</code></td><td>Texture file names, NUL-terminated. May be followed by zero padding to 4 bytes and one 8-byte record per texture: {u32 flags, i32 -1}</td></tr>
-    <tr><td><code>MESH</code></td><td><code>int32 x, y, z</code> (fixed) per vertex — positions</td></tr>
+    <tr><td><code>MESH</code></td><td><code>i32 x, y, z</code> (fixed) per vertex — positions</td></tr>
     <tr><td><code>NORM</code></td><td>Same layout — normals</td></tr>
-    <tr><td><code>TXUV</code></td><td><code>int32 u, v</code> (fixed) per vertex. v runs upward from the bottom</td></tr>
+    <tr><td><code>TXUV</code></td><td><code>i32 u, v</code> (fixed) per vertex. v runs upward from the bottom</td></tr>
     <tr><td><code>COLR</code></td><td>3 or 4 bytes per vertex depending on HEAD[11]</td></tr>
   </tbody>
 </table>
@@ -123,7 +123,7 @@ fixed x, y, z scale per key</pre>
 <h4>LODI</h4>
 <pre>u32   count
 per entry: fixed switch distance, u32 level</pre>
-<p>Level 0 is the top-level mesh. Each further level is a FORM:MESH holding MSHD (10 int32 matching HEAD[1..9]), MESH, TXUV, POLY, and its own FORM:SKIN.</p>
+<p>Level 0 is the top-level mesh. Each further level is a FORM:MESH holding MSHD (10 i32 matching HEAD[1..9]), MESH, TXUV, POLY, and its own FORM:SKIN.</p>
 
 <h3>SCEN Tracks</h3>
 <p>Track chunks in order: VERS (CNK2 only), VERT, TCOR, COLR, TXTR, MATL, INDS, CHNK, CHAN, POSI, CAMS (CNK3D only), PICK, EMIT (CNK2), LINE, CELL, PORT, FORM:BSPS.</p>
@@ -133,8 +133,8 @@ per entry: fixed switch distance, u32 level</pre>
   <thead><tr><th>Chunk</th><th>Layout</th></tr></thead>
   <tbody>
     <tr><td><code>VERS</code></td><td>4 bytes: <code>03 01 01 00</code> (CNK2 only)</td></tr>
-    <tr><td><code>VERT</code></td><td><code>u32 count</code>, then <code>int16 x, y, z</code> per vertex, in 1/64 units (relative to grid cell)</td></tr>
-    <tr><td><code>TCOR</code></td><td><code>u32 count</code>, then <code>int16 u, v</code> per vertex, in 1/256 units</td></tr>
+    <tr><td><code>VERT</code></td><td><code>u32 count</code>, then <code>i16 x, y, z</code> per vertex, in 1/64 units (relative to grid cell)</td></tr>
+    <tr><td><code>TCOR</code></td><td><code>u32 count</code>, then <code>i16 u, v</code> per vertex, in 1/256 units</td></tr>
     <tr><td><code>COLR</code></td><td><code>u32 1</code>, <code>u32 count</code>, then u16 per colour in ARGB4444</td></tr>
     <tr><td><code>TXTR</code></td><td><code>u32 count</code>, then texture names (see below)</td></tr>
     <tr><td><code>INDS</code></td><td><code>u32 byte length</code>, then index data (8- or 16-bit per chunk)</td></tr>

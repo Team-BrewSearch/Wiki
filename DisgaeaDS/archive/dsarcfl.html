@@ -9,8 +9,8 @@
 
 <ul>
   <li><strong>Magic</strong>: ASCII <code>"DSARC FL"</code> (8 bytes)</li>
-  <li><strong>Version</strong>: 32-bit unsigned integer (little-endian)</li>
-  <li><strong>Entry Count</strong>: 32-bit unsigned integer (little-endian)</li>
+  <li><strong>Version</strong>: u32 (little-endian)</li>
+  <li><strong>Entry Count</strong>: u32 (little-endian)</li>
   <li><strong>Header Size</strong>: 16 bytes (magic + count + version)</li>
   <li><strong>Name Field Size</strong>: 40 bytes per entry (UTF-8, null-padded)</li>
   <li><strong>Entry Info Size</strong>: 8 bytes per entry (size + offset)</li>
@@ -20,9 +20,9 @@
 <pre>+----------------------+   &lt;-- offset 0
 | Magic (8 bytes)      |       "DSARC FL"
 +----------------------+   &lt;-- offset 8
-| Count (4 bytes)      |       Number of entries (uint32 LE)
+| Count (4 bytes)      |       Number of entries (u32 LE)
 +----------------------+   &lt;-- offset 12
-| Version (4 bytes)    |       Format version (uint32 LE)
+| Version (4 bytes)    |       Format version (u32 LE)
 +----------------------+   &lt;-- offset 16 (HEADER_SIZE)
 | Entry Table ...      |       count * (40 + 8) bytes
 +----------------------+   &lt;-- data start

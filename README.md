@@ -1,3 +1,6 @@
+> [!IMPORTANT]  
+> The wiki has been merged into https://github.com/Team-BrewSearch/OmegaStudio
+
 # BrewSearch Reverse Engineering Wiki
 
 File format documentation for the games BrewSearch takes apart, read from the game data
